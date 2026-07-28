@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 350" width="900" height="350" role="img" aria-label="Strategy lifecycle: candidates climb one rung at a time from backlog to live, past two gates. Over the run 16 stayed in backlog, 3 in research, 1 reached paper, 14 were retired, and none reached live.">
+  <style>
+    .t   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; }
+    .stg { font-size: 12px; font-weight: 700; letter-spacing: .6px; fill: #1f2328; }
+    .cnt { font-size: 10.5px; fill: #656d76; }
+    .cap { font-size: 10.5px; font-weight: 700; letter-spacing: 1.1px; fill: #656d76; }
+    .txt { font-size: 11px; fill: #1f2328; }
+    .mut { font-size: 10.5px; fill: #656d76; }
+    .bg  { fill: #ffffff; }
+    .box { fill: #f6f8fa; stroke: #d0d7de; }
+    .pan { fill: #ffffff; stroke: #d0d7de; }
+    .dead{ fill: #ffffff; stroke: #d0d7de; stroke-dasharray: 5 4; }
+    .flow{ stroke: #8c959f; stroke-width: 1.4; fill: none; }
+    .gate{ stroke: #8c959f; stroke-width: 1.3; fill: none; stroke-dasharray: 3 3; }
+    @media (prefers-color-scheme: dark) {
+      .stg, .txt { fill: #e6edf3; }
+      .cnt, .cap, .mut { fill: #8b949e; }
+      .bg  { fill: #0d1117; }
+      .box { fill: #161b22; stroke: #30363d; }
+      .pan { fill: #161b22; stroke: #30363d; }
+      .dead{ fill: #0d1117; stroke: #30363d; }
+      .flow, .gate { stroke: #6e7681; }
+      #a2 path { fill: #6e7681; }
+    }
+  </style>
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8c959f"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="900" height="350"/>
+
+  <!-- the two gates, drawn first so the flow arrows read as passing through them -->
+  <line class="gate" x1="590" y1="34" x2="590" y2="112"/>
+  <line class="gate" x1="730" y1="34" x2="730" y2="112"/>
+  <text class="t cap" x="590" y="26" text-anchor="middle">GATE</text>
+  <text class="t cap" x="730" y="26" text-anchor="middle">GATE</text>
+
+  <!-- the ladder -->
+  <g>
+    <rect class="box" x="45"  y="44" width="110" height="56" rx="8"/>
+    <text class="t stg" x="100" y="70" text-anchor="middle">BACKLOG</text>
+    <text class="t cnt" x="100" y="88" text-anchor="middle">16 candidates</text>
+
+    <rect class="box" x="185" y="44" width="110" height="56" rx="8"/>
+    <text class="t stg" x="240" y="70" text-anchor="middle">RESEARCH</text>
+    <text class="t cnt" x="240" y="88" text-anchor="middle">3</text>
+
+    <rect class="box" x="325" y="44" width="110" height="56" rx="8"/>
+    <text class="t stg" x="380" y="70" text-anchor="middle">TICK</text>
+    <text class="t cnt" x="380" y="88" text-anchor="middle">0</text>
+
+    <rect class="box" x="465" y="44" width="110" height="56" rx="8"/>
+    <text class="t stg" x="520" y="70" text-anchor="middle">PAPER</text>
+    <text class="t cnt" x="520" y="88" text-anchor="middle">1</text>
+
+    <rect class="box" x="605" y="44" width="110" height="56" rx="8"/>
+    <text class="t stg" x="660" y="70" text-anchor="middle">READY</text>
+    <text class="t cnt" x="660" y="88" text-anchor="middle">0</text>
+
+    <rect class="box" x="745" y="44" width="110" height="56" rx="8"/>
+    <text class="t stg" x="800" y="70" text-anchor="middle">LIVE</text>
+    <text class="t cnt" x="800" y="88" text-anchor="middle">never reached</text>
+  </g>
+
+  <path class="flow" d="M157 72 L181 72" marker-end="url(#a2)"/>
+  <path class="flow" d="M297 72 L321 72" marker-end="url(#a2)"/>
+  <path class="flow" d="M437 72 L461 72" marker-end="url(#a2)"/>
+  <path class="flow" d="M577 72 L601 72" marker-end="url(#a2)"/>
+  <path class="flow" d="M717 72 L741 72" marker-end="url(#a2)"/>
+
+  <!-- anything can be killed -->
+  <path class="flow" d="M240 102 L240 126"/>
+  <path class="flow" d="M380 102 L380 126"/>
+  <path class="flow" d="M520 102 L520 126"/>
+  <path class="flow" d="M520 126 L170 126 L170 154" marker-end="url(#a2)"/>
+
+  <rect class="dead" x="45" y="158" width="250" height="62" rx="8"/>
+  <text class="t stg" x="70" y="184">RETIRED</text>
+  <text class="t cnt" x="70" y="203">14 killed on their own evidence</text>
+
+  <text class="t mut" x="45" y="248">Killing a candidate is cheap and</text>
+  <text class="t mut" x="45" y="264">reversible. Capital is neither — so</text>
+  <text class="t mut" x="45" y="280">the loop is tuned to kill early and</text>
+  <text class="t mut" x="45" y="296">to advance only one rung at a time.</text>
+
+  <!-- what the gates demand -->
+  <rect class="pan" x="330" y="158" width="525" height="162" rx="8"/>
+  <text class="t cap" x="352" y="182">PAPER → READY</text>
+  <text class="t txt" x="352" y="204">20+ settled decisions over 15+ <tspan font-style="italic">independent</tspan> days</text>
+  <text class="t txt" x="352" y="222">closing-line value positive and significant, clustered by day</text>
+  <text class="t txt" x="352" y="240">realised fee-net P&amp;L &gt; 0 · calibration error inside the ceiling</text>
+  <text class="t txt" x="352" y="258">metrics <tspan font-weight="700">derived from the ledger</tspan>, never hand-entered</text>
+  <text class="t txt" x="352" y="276">a PROCEED artifact from the review panel, under 24h old</text>
+
+  <line class="gate" x1="352" y1="288" x2="833" y2="288"/>
+  <text class="t cap" x="352" y="308">READY → LIVE</text>
+  <text class="t txt" x="470" y="308">…all of the above, plus the spend gate approving the worst case</text>
+</svg>

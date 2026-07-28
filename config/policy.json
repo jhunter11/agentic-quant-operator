@@ -1,0 +1,40 @@
+{
+  "_doc": "The bars a strategy must clear to advance a rung. This file is part of the frozen control plane: the agent may propose a change in writing, but it may not edit it. Tightening these numbers is how the desk gets more selective over time.",
+
+  "ladder": ["BACKLOG", "RESEARCH", "TICK", "PAPER", "READY", "LIVE"],
+
+  "research": {
+    "_doc": "RESEARCH -> PAPER. Offline evidence only, so the bar is 'is this worth spending live data collection on'.",
+    "oos_beats_baseline": true,
+    "max_ece": 0.05
+  },
+
+  "paper": {
+    "_doc": "PAPER -> READY. The expensive gate. Every number here must be computed from the settled ledger, never typed by hand.",
+    "min_settlements": 20,
+    "min_independent_days": 15,
+    "min_clv_bps": 0.0,
+    "clv_significant": true,
+    "min_paper_pnl": 0.0,
+    "max_ece": 0.06,
+    "beats_market_baseline": true,
+    "provenance": "ledger"
+  },
+
+  "kill": {
+    "_doc": "Any one of these true and the strategy is retired. Killing is cheap and reversible; capital is not.",
+    "min_settlements_for_pnl_kill": 20
+  },
+
+  "panel": {
+    "_doc": "A PROCEED verdict older than this reviewed a different set of facts.",
+    "max_verdict_age_hours": 24.0,
+    "required_for_stages": ["READY", "LIVE"]
+  },
+
+  "live": {
+    "_doc": "LIVE additionally requires the spend gate to approve the worst-case loss. With the cap at $0 a strategy parks at READY until an operator funds it — which is exactly what happened.",
+    "require_spend_approval": true,
+    "require_worst_case_usd": true
+  }
+}

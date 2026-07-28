@@ -1,0 +1,1418 @@
+{
+  "_doc": "Strategy lifecycle registry as it stood at the end of the quant run. Every stage change is appended to history; metrics with provenance=ledger were computed from settled paper trades, never hand-entered.",
+  "strategies": [
+    {
+      "id": "calendar_seasonality_drift",
+      "family": "calendar_drift",
+      "stage": "BACKLOG",
+      "created": "2026-06-21T05:49:49.161446+00:00",
+      "updated": "2026-06-22T01:26:17.504933+00:00",
+      "metrics": {
+        "tested": true,
+        "verdict": "RETRY_HOLD_null_subcost",
+        "n_returns": 3406,
+        "intracycle_swing_c": 0.69,
+        "roundtrip_cost_c": 5.45,
+        "sig_buckets_of_60": 5,
+        "timeofday_sig": 0,
+        "note": "06-22 cheap-backtest: intra-cycle drift sub-cost ~8x, swing collapsed 6.49c@n301->0.69c@n3406 (noise artifact); DoW/full-clock untested intraday",
+        "provenance": "manual"
+      },
+      "note": "RESEARCH-lane variety pick (06-21 05:47Z) under SATURATED backlog (20 untested). NEW MECHANISM: systematic time-of-day/day-of-week/pre-settlement drift in liquid Kalshi event-market mids (behavioral risk-premium, distinct from lead-lag timing and deterministic arb). Uniquely cheap to evaluate: regress mid-returns on calendar features over ALREADY-collected data/ws_ticks \u2014 no new data collection. Scored 34/40, top of 5 surviving non-dead novel mechanisms.",
+      "history": [
+        {
+          "ts": "2026-06-21T05:49:49.161599+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-22T01:26:17.505076+00:00",
+          "event": "metrics updated (manual)"
+        }
+      ]
+    },
+    {
+      "id": "cs2_inplay_micro",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T17:11:14.237394+00:00",
+      "updated": "2026-06-20T17:11:14.237542+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20). CS2 esports in-play directional/markout microstructure from OUR keyless WS capture (orderbook_delta+trade+ticker): order-book imbalance, trade-flow toxicity, repricing around discrete scoring events (round/map win) on KXCS2MAP+KXCS2GAME+KXCS2TOTALMAPS. Paper/markout-eval, no live until logged. Scored 34/40, top NON-redundant candidate of 7. 3rd-largest surface in our capture (~783k msgs/3h: KXCS2MAP 370k+KXCS2GAME 307k+KXCS2TOTALMAPS 106k > all crypto combined ex-BTCD). Discrete round/map scoring = sharper structured repricing than continuous crypto (same property that ranked tennis #1). Clean dual ts (exchange_ts ms + received_at). Baseline = ticker yes_bid_dollars/yes_ask_dollars mid (NOT yes_bid/yes_ask -- *_dollars migration; dual-snapshot CLV viable). Continuous esports calendar across regions/leagues = high N/day. PURE-FLOW so the 'keyless in-play state hard' objection that dinged CS2 vs tennis does NOT apply (we model flow not the line). Beats eth_microstructure (redundant: same engine as backlogged kxbtc_microstructure, BTC dominates), mlb_inplay_micro (MLB already 2 sleeves: mlb_outright_paper+mlb_kprop), cricket/npb/golf (thinner capture, lumpier cadence, thin books), cross_market_leadlag (multi-leg exec+fee drag flirts with RETIRED noarb kill). Main downgrade = thinner esports books -> exec/liquidity risk. Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T17:11:14.237544+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "cs2_xmarket_leadlag",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T20:25:32.354096+00:00",
+      "updated": "2026-06-20T20:25:32.354218+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20 20:23Z). THIRD cross-market lead-lag family (extends the diversifying mechanism, not a 5th single-book micro clone). Intra-event lead-lag among simultaneously-live coupled Kalshi books on the SAME CS2 series: deep/fast match-winner (KXCS2GAME) vs per-map winner (KXCS2MAP) vs total-maps (KXCS2TOTALMAPS). Map wins deterministically drive game outcome (Bo3/Bo5) + total-maps -> structural coupling analogous to MLB run-distribution. Hypothesis: after a discrete scoring event (round/map win) the deepest book reprices first; trade the LAGGING coupled book SINGLE-LEG DIRECTIONAL toward the implied move, hold to convergence. Markout/paper-eval, no live until logged. Why #1 this tick & beats alternatives: it was the EXPLICIT runner-up in the mlb_xmarket_leadlag tick, and is backed by the 2nd-densest coupled multi-book cluster in the fresh 12h capture (run-20260620T191048038860Z, dropped=0/write_errors=0): KXCS2GAME 863k + KXCS2MAP 336k + KXCS2TOTALMAPS 82k = 1.28M coupled msgs, second only to the MLB cluster already backlogged (SPREAD 1.12M+GAME 550k). Discrete round/map scoring = sharp structured repricing (same property that ranked tennis/MLB lead-lag #1) and PURE-FLOW so the 'keyless in-play state hard' objection does NOT apply (we model book-to-book divergence, not the line). Clean dual ts (exchange_ts ms + received_at). Baseline = ticker yes_bid_dollars/yes_ask_dollars mid (*_dollars migration; dual-snapshot CLV viable). Continuous esports calendar across regions/leagues = high N/day. KEY DISTINCTION from buried noarb/kalshi_noarb_scanner (BROKEN): that was LOCKED TWO-LEG cross-bracket arb on a hard sum=1 identity, fees compounded on both legs; this is SINGLE-LEG DIRECTIONAL across SOFT-coupled separate books -> one fee, kill does not apply. Distinct from cs2_inplay_micro (single-book pure-flow). Beats: btc_xtenor_termstructure (overlaps crypto_vol_surface RESEARCH; always-available so no in-season urgency; continuous-not-discrete repricing = weaker structured lag); pga_golf_micro (KXPGATOUR 547k volume but multi-day LUMPY settlement + sparse discrete events = poor high-N gating); itf/npb micro (redundant w/ tennis_inplay_micro & mlb engine, thinner); wnba_props/mlb_props (model-vs-line = RETIRED efficiency wall after 32+ cycles); eth/sol/xrp (redundant, BTC dominates). RISK: esports books thinner -> exec/liquidity risk on the lagging leg; synchronous-MM risk (one algo prices all 3 CS2 books off same model -> no lag -> efficient; the empirical question paper resolves). Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T20:25:32.354220+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "econ_release_settlesnipe",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-21T04:13:37.829627+00:00",
+      "updated": "2026-06-21T04:13:37.829790+00:00",
+      "metrics": {},
+      "note": "Post-release stale-quote snipe on scheduled econ prints (CPI/PPI/weekly jobless claims/NFP): outcome deterministic at 8:30 ET release; snipe Kalshi quotes that lag the print before they reprice. Keyless FRED/BLS, clean ts, weekly+monthly cadence, baseline=pre-release quote. Variety pick: transfers the weather_metar settlesnipe edge (mean viable CLV +0.60, buried ONLY on 3<10 market-count gate, graveyard #7) to a market class with ~10x event count + far more liquid Kalshi markets. Distinct from macro_cpi_cdf (model-vs-line pre-release). Key risk: MMs reprice in ms -> exec/liq scored low. Cheap-test on recorded ticks before paper.",
+      "history": [
+        {
+          "ts": "2026-06-21T04:13:37.829792+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "favorite_longshot_bias",
+      "family": "behavioral_bias",
+      "stage": "BACKLOG",
+      "created": "2026-06-21T02:41:02.200393+00:00",
+      "updated": "2026-06-21T20:22:51.618235+00:00",
+      "metrics": {
+        "feasibility": "confirmed_underpowered",
+        "data_source": "keyless WS capture run-20260621T161051150984Z (12h, 4 shards); market_lifecycle_v2 determined=label + ticker mid@lookback",
+        "flb_cheaptest_2026-06-21": "3234 settled markets but ~95% crypto hourly/daily binaries (KXBTC/SOL/XRP/ETH/HYPE/BNB) that pin to 0/1 BEFORE settlement; after excluding already-resolved quotes (mid in 0.02-0.98) only n=50/64/63 genuinely-uncertain settled markets survive at lookback=300/900/1800s, 1-13 per price decile = too thin for a calibration curve. Where n nontrivial (40-60c buckets) bid-ask spread is 36-90c, swamping any bias. bias-vs-price slope noisy/inconsistent across lookbacks (+0.023@300s -> +0.226@1800s). NO tradeable bucket (edge_net>0 & n>=15) at ANY lookback.",
+        "flb_verdict": "RETRY_HOLD_not_promotable: cross-sectional favorite-longshot bias is UNDER-POWERED + sub-spread on a crypto-dominated 12h slice. Liquid settled markets resolve early (no live longshots to fade); the few uncertain markets carry spreads that dwarf any bias. Not DEAD per HPO/data gate: needs a MULTI-DAY sports-inclusive settled capture (MLB/tennis/soccer markets that settle from genuinely-uncertain mids) to populate the price deciles before the bias is testable. Consistent with kalshi-efficient-vs-models.",
+        "n_settlements": 0,
+        "paper_pnl": 0,
+        "oos_beats_baseline": false,
+        "beats_market_baseline": false,
+        "clv_significant": false,
+        "provenance": "manual"
+      },
+      "note": "RESEARCH-lane variety pick (06-20 22:39Z) under SATURATED backlog (18 items). NEW MECHANISM (first behavioral_bias family): cross-sectional favorite-longshot bias \u2014 calibrate realized settlement freq vs implied entry price across ALL settled Kalshi markets, fade overpriced longshots / hold underpriced favorites. SCORING: keyless+deep hist data (every settled mkt = sample, VERY HIGH), clean deterministic settlement timestamps, market-implied baseline = entry price itself, continuous cadence, simple calibration-regression modelability, LOW impl cost. KEY RISK: liquidity/spread at price extremes (<10c/>90c). Distinct from all 18 backlog items (none are cross-sectional stat bias). Beat macro_release_snipe (overlaps existing macro_cpi_cdf) + calendar_seasonality (weak modelability). Arb/coherence family rejected (noarb buried, fee-compounding death).",
+      "history": [
+        {
+          "ts": "2026-06-21T02:41:02.200526+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-21T20:22:51.618357+00:00",
+          "event": "metrics updated (manual)"
+        }
+      ]
+    },
+    {
+      "id": "kalshi_book_leadlag",
+      "family": "cross_venue",
+      "stage": "BACKLOG",
+      "created": "2026-06-21T01:30:50.661701+00:00",
+      "updated": "2026-06-21T01:30:50.661835+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-1 variety pick (06-20). Information lead-lag: sharp sportsbook line (Pinnacle/DK/consensus) moves first, Kalshi yes/no lags -> trade Kalshi toward the book before convergence. LINE-VS-LINE not model-vs-line, so survives the \"REST model-vs-line all efficient\" lesson [[kalshi-efficient-vs-models]]. Fills the missing leg of the lead-lag family: backlog has Kalshi-internal xmarket (mlb/tennis/cs2) + Kalshi-vs-Poly (xvenue, thin ~10k); sportsbook is the SHARPEST reference, strictly better lead signal. Scored ~32/40 of ~8 surviving candidates (rejected: model-vs-line wnba_elo/golf/ufc per efficiency lesson; offseason nba/nhl; redundant eth/lol/jobless; low-variety weather_multicity revive). Live+liquid NOW across MLB(KXMLBGAME/TOTAL)+WC(KXWCGAME)+WNBA. Data: sportsbook odds keyless-ish (the-odds-api free 500/mo or DK/ESPN public JSON) + our 4ms-clean Kalshi WS capture for the lag side. Cadence: per-game multi/day = high N in days. Guardrails: dual-snapshot CLV mandatory [[clv-needs-two-snapshots]]; phantom-edge sigma=0 guard [[phantom-edge-from-settlement-bugs]]; paper/markout only, no model build, no spend, engine read-only.",
+      "history": [
+        {
+          "ts": "2026-06-21T01:30:50.661837+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "kxbtc_convergence",
+      "family": "expiry_convergence",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T23:39:32.700801+00:00",
+      "updated": "2026-06-21T12:03:13.565354+00:00",
+      "metrics": {
+        "first_eval": "2026-06-21T11:55Z",
+        "cheap_test": "KXBTC15M theta/convergence snipe on run-20260621T101045Z WS ticker channel (N=8 determined 15m markets, 5Y/3N). Bias-free per-market snipe of favored side at ask in final bands. With REAL Kalshi fee ceil(0.07*p*(1-p)): 45-15s@.90 net +0.0084/ct, 120-45s@.90 net -0.0019, 15-3s@.85 net +0.005, 45-15s@.95 net -0.0011 -> ~break-even, +mean driven by 1 market still mispriced @0.915. By ~45s-to-expiry MOST markets already pinned 0.99-1.00 on correct side = convergence already priced. NOTE flat-2c fee earlier said clearly negative; real-fee correction flipped to break-even (why fail-closed matters). Calibration table mid-range gaps are PATH-BIAS (5/8 settled YES), not edge.",
+        "oos_beats_baseline": false,
+        "market_gate_cleared": false,
+        "n_markets": 8,
+        "fee_model": "kalshi_real_ceil_0.07pq",
+        "verdict": "RETRY-keep-BACKLOG (not DEAD: N=8 thin, fee model just corrected, HPO not exhausted)",
+        "revive_gate": "(a) >=40 settled KXBTC15M markets across multiple days/runs; (b) fee-net positive snipe surviving single-outlier removal; (c) decidedness measured vs exogenous BTC spot in the 120-300s band (where some markets sit 0.85-0.95) -> needs recorded spot feed (ties to kxbtc_spot_lead).",
+        "provenance": "manual"
+      },
+      "note": "RESEARCH-lane VARIETY pick (06-20 23:40Z) under a SATURATED backlog (13 items pre-add). NEW MECHANISM: time-decay / theta convergence snipe on KXBTC hourly level-at-expiry markets, NOT a clone of the 4 single-book micro / 3 cross-market lead-lag / 4+ settle-snipe families already queued. As time-to-expiry -> 0 the YES/NO of a level-at-expiry book converges toward 0/1 when |spot - boundary| >> remaining realized intra-window move; snipe the converging side when our WS book lags free keyless public spot (Coinbase/Binance public WS). Scored ~34/40 vs distinct finalists. UNIQUE STRENGTH vs current backlog: year-round HOURLY cadence = high N with NO seasonal cliff (every recent backlog item is in-season MLB/WNBA facing a fall window); KXBTC = most-liquid Kalshi surface; 143GB own keyless WS capture; clean dual ts (4ms median). DISTINCT from btc_settlement_arb (PARKED latency-arb, sub-second RTT-bound, needs us-east-1 -- this is a within-window theta convergence at ~minutes cadence, NOT latency-critical), kxbtc_microstructure (continuous order-flow signal, not time-decay), crypto_vol_surface (multi-tenor vol model, not recorded), and the RETIRED model-vs-line class (this is mostly-deterministic convergence as t->0, minimal vol input). KEY CAVEAT / empirical question: level-at-expiry markets have NO HARD lock (spot can recross the boundary to the last tick), so this is mildly model-ish -- the kalshi-efficient-vs-models prior (32+ efficient cycles) says MMs likely price theta correctly near expiry, so the live edge is DOUBTFUL; paper-replay resolves whether any exploitable book lag exists in the final minutes. Phantom-guard per btc-settlement-false-edge sigma=0 trap; require >=2 entry->close snapshots before trusting CLV (clv-needs-two-snapshots); thinner depth on far-OTM brackets = exec risk. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T23:39:32.700973+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-21T12:03:13.565495+00:00",
+          "event": "metrics updated (manual)"
+        }
+      ]
+    },
+    {
+      "id": "kxbtc_spot_lead",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-21T07:31:43.146838+00:00",
+      "updated": "2026-06-21T07:31:43.146980+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane variety add (06-21, BACKLOG=21 so +1). Exogenous-reference lead-lag: BTC SPOT (Coinbase/Binance, keyless) moves first -> Kalshi KXBTC hourly/range binary reprices with lag; trade the reaction-lag/drift before it closes. DISTINCT from the 3 existing kxbtc candidates: kxbtc_microstructure=endogenous order-flow (book imbalance/toxicity), kxbtc_convergence=settlement pull, kalshi_book_leadlag=Kalshi-vs-Kalshi. This is the cross-asset spot->derivative lag, the most-documented micro edge, different alpha source/inputs. Scored #1 of 12 brainstormed (~36/40): KXBTC=most-liquid Kalshi mkt (5), backtestable on existing 143GB WS capture + free Binance historical klines for spot-align (5), 4ms-median clean timestamps (5), live yes_bid/ask baseline in capture (5), hourly cadence->high N (5), tractable lead-lag regression/threshold model (4); discounts: latency-sensitive edge can close fast + spread/fees eat directional moves (exec risk 3), need spot-align replay loader on top of shared kxbtc scaffolding (cost 4). Rejected this cycle: basketball/NBA-summerleague (Kalshi NBA illiquid per nba_elo#5), intra_event_consistency (noarb buried broken + fee-killed), newlisting_coldstart/politics_drift (no backtest data / cadence too slow). Phantom-guard: dual-snapshot CLV + sigma=0 trap per btc-settlement-false-edge. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-21T07:31:43.146982+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "macro_cpi_cdf",
+      "family": "macro",
+      "stage": "BACKLOG",
+      "created": "2026-06-09T16:43:30.651203+00:00",
+      "updated": "2026-06-09T16:43:30.651363+00:00",
+      "metrics": {},
+      "note": "FRED/BLS keys",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.651364+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "mlb_inplay_micro",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T18:24:30.633449+00:00",
+      "updated": "2026-06-20T18:24:30.633576+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20). MLB in-play directional/markout microstructure from OUR keyless WS capture (orderbook_delta+trade+ticker): order-book imbalance, trade-flow toxicity, repricing around DISCRETE scoring events (run/out/inning, base-out state) on KXMLBGAME+KXMLBTOTAL+KXMLBSPREAD. Paper/markout-eval, no live until logged. Scored ~36/40, #1 of 9 candidates by capture surface. 4th-largest keyless family in our 12h capture (~1.5M msgs: GAME 429k+TOTAL 382k+SPREAD 260k+HIT 126k+HRR 125k+TB 106k+KS 70k) behind only the 3 already backlogged (tennis 6.7M, BTC 2.2M, CS2 2.1M). IN-SEASON now (June, ~15 liquid games/day = high N). Discrete run/out scoring = sharp structured repricing -- the SAME property that ranked tennis #1 and CS2 high; pure-flow so we model flow not the line. Clean dual ts (exchange_ts ms + received_at). Baseline = ticker yes_bid_dollars/yes_ask_dollars mid (*_dollars migration; dual-snapshot CLV viable). Pitch cadence ~20s = NOT latency-critical -> no us-east-1 colocation needed (unlike btc_settlement_arb PARKED). DISTINCT from MLB pregame sleeves mlb_outright_paper+mlb_kprop (those are model-vs-line residual/strikeout props; this is in-play pure-flow micro -- the cs2-tick 'MLB already 2 sleeves' objection does not apply to a different mechanism). Beats ETH/SOL (redundant w/ kxbtc_microstructure engine, BTC dominates), T20 cricket 303k (in-play state hard keyless, lumpy ball cadence, thinner book, ~5x smaller), PGA golf 169k (multi-day lumpy settlement, sparse discrete events), NPB 139k (smaller; folds into MLB engine later). Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory; thinner depth on HIT/HRR/TB/KS prop series = exec risk. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T18:24:30.633577+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "mlb_playerprops_settlesnipe",
+      "family": "settlement_snipe",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T23:04:37.191918+00:00",
+      "updated": "2026-06-20T23:04:37.192057+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane variety pick (06-20 23:0xZ). FOURTH settlement-snipe instance: extends the deterministic exogenous-state-vs-book lock mechanism (mlb_total/wnba_props/tennis_total) to a NEW MARKET SURFACE = MLB player-prop brackets KXMLBKS (pitcher Ks) / KXMLBHIT (hits) / KXMLBTB (total bases). MECHANISM: these are MONOTONIC-INCREASING counting stats, so once a players cumulative stat crosses a bracket boundary the over locks YES P=1 / matching under NO P=0 -- one-sided deterministic edge, NO model, no calibration drift, sidesteps the model-vs-line efficiency wall (32+ RETIRED cycles). Snipe the locked side when our WS book lags the StatsAPI crossing; markout/paper-eval, no live until logged. WHY #1 of 8 this tick on deterministic scoring (~37/40): (a) BINDING settlesnipe constraint = free keyless live counting-stat feed -- VERIFIED: statsapi.mlb.com/api/v1/game/<pk>/boxscore returns live per-player batting (hits/TB) + pitching (strikeouts) keyless, a SECOND independent endpoint beyond the linescore that mlb_total_settlesnipe uses; (b) IN-SEASON now (June, ~15 games/day x many players x stat-types x bracket-crossings = high N -- the exact ingredient weather S1 graveyard #7 lacked, killed only on N>=10 gate at +0.60 mean viable CLV); (c) deterministic lock no-model; (d) clean dual ts (StatsAPI ts + our WS exchange_ts ms); dual-snapshot CLV viable from yes_bid_dollars/yes_ask in capture; (e) APPROACH-DIVERSIFYING: offers a deterministic-lock alternative on the SAME KXMLBKS surface that mlb_kprop (RESEARCH) attacks via hard Poisson model-vs-line. BEATS: pga_golf/makecut_settlesnipe (~27, multi-day lumpy + sparse discrete events + low N); xvenue_settlesnipe (~26, thin Poly liq + no hist data to backtest + structural mismatch per xvenue_divergence); jobless_claims_cdf (~25, weekly cadence slow N); nba_props_settlesnipe (~24, NBA Finals season ending June + illiquid per nba_elo graveyard); wc/soccer_goals_settlesnipe (~28, goals SPARSE = few bracket crossings = low N, no KXWC totals in capture); nhl_inplay_micro (off-season). DISTINCT from mlb_total_settlesnipe (game-total linescore), mlb_inplay_micro (pure order-flow), mlb_xmarket_leadlag (book-vs-book divergence), mlb_kprop/mlb_outright (pregame model-vs-line). RISKS: player-prop books THINNER than game markets = exec/liquidity risk on the lagging snipe leg; UNDER side never locks early (more events always possible) so edge is one-sided OVER/locked-bracket only; if Kalshi MMs watch the same StatsAPI feed and reprice instantly -> no lag -> efficient (the empirical question paper resolves); MLB-redundant (5th MLB sleeve) is the main downgrade vs raw score. Phantom-guard per btc-settlement-false-edge sigma=0 trap; require >=2 entry->close snapshots before trusting CLV (clv-needs-two-snapshots). No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T23:04:37.192059+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "mlb_total_settlesnipe",
+      "family": "settlement_snipe",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T21:11:27.566237+00:00",
+      "updated": "2026-06-20T21:11:27.566396+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20 21:10Z). NEW MECHANISM: deterministic STATE-vs-book settlement snipe (not flow micro, not lead-lag, not model-vs-line). Use the FREE KEYLESS MLB StatsAPI live linescore (statsapi.mlb.com/api/v1/game/<pk>/linescore -> cumulative runs + inning state; verified keyless, 14 games today) as an exogenous ground-truth feed against KXMLBTOTAL brackets. Once cumulative game runs cross a bracket boundary the outcome is LOCKED with certainty (total_final>=runs_so_far): any 'under X' with X<runs_so_far settles NO P=0, the matching 'over X' settles YES P=1 -- one-sided deterministic edge that cannot un-resolve. Snipe the locked side when our WS book lags the StatsAPI crossing; markout/paper-eval, no live until logged. Scored ~38/40, #1 of 10 candidates. WHY IT BEATS THE FIELD: (a) introduces a SECOND independent keyless data source (StatsAPI) instead of recycling our WS-flow-only signals -- genuine backlog diversification beyond the 4 single-book micro (kxbtc/tennis/cs2/mlb) + 3 cross-market lead-lag (tennis/mlb/cs2) already queued; (b) DETERMINISTIC P=1.0/0.0 -> NO model, no calibration drift, no overfitting -> structurally sidesteps the model-vs-line efficiency wall that RETIRED 32+ cycles; (c) mechanism EMPIRICALLY PRE-VALIDATED -- weather S1 sniper (graveyard #7) produced +0.60 mean viable CLV and was buried ONLY on the N>=10 count gate (3 viable snipes in thin weather), which MLB's ~15 liquid games/day x multiple bracket-cross events trivially solves (high N is exactly weather's missing ingredient); (d) liquid in-season target (KXMLBTOTAL, June), clean dual ts (StatsAPI ts + our WS exchange_ts ms), dual-snapshot CLV viable from yes_bid/ask in capture. Beats: btc_xtenor_termstructure (~33; overlaps crypto_vol_surface RESEARCH, continuous-not-discrete=weaker lag), tennis/cs2 settlesnipe (deterministic but NO free keyless live score feed -> data=2, the binding constraint), pga_golf_micro/jobless_claims_cdf/nhl_inplay_micro (~25-27; lumpy/off-season/slow cadence), nba_finals_micro (NBA markets illiquid per nba_elo graveyard), eth_microstructure (redundant w/ kxbtc engine). DISTINCT from mlb_inplay_micro (pure order-flow), mlb_xmarket_leadlag (book-vs-book divergence), mlb_outright_paper+mlb_kprop (pregame model-vs-line) -- this is exogenous-state-vs-book, a different signal class. NOT a revive of weather_metar S1 (different market+datasource+id). Phantom-guard per btc-settlement-false-edge sigma=0 trap; require >=2 entry->close snapshots before trusting CLV; UNDER side never locks early (more runs always possible) so edge is one-sided OVER/locked-bracket only; exec/liquidity risk on thinner total brackets of low-profile games. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T21:11:27.566398+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "tennis_inplay_micro",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T15:32:40.383949+00:00",
+      "updated": "2026-06-20T15:32:40.384080+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20). In-play directional/markout signal in KXATPMATCH/KXWTAMATCH + KXATP/WTASETWINNER from OUR keyless WS capture (orderbook_delta+trade+ticker): order-book imbalance, trade-flow toxicity, repricing around discrete scoring events (point/game/set). Paper/markout-eval, no live until logged. Scored #1 of 8 (~37/40): tennis is the LARGEST surface in our capture (ATP set-winner 1.0M + WTA match 564k + ATP match 417k msgs/3h run > all crypto combined); live+liquid ($609k dollar_vol & 1c spread on a single in-play match); clean dual ts (exchange_ts ms + received_at + ts_ms); yes_bid/ask in ticker (dual-snapshot CLV viable); continuous fast settlement across ATP/WTA/Challenger/ITF (high N/day); textbook in-play win-prob + pure-flow microstructure. Beats kxbtc_microstructure (complementary; bigger keyless surface + discrete scoring events = more structured repricing than continuous crypto; same replay scaffolding, $0 infra), eth/mlb in-play (smaller capture), cs2/cricket (in-play state hard keyless, lumpy cadence), and RETIRED model-vs-line class incl tennis_xgboost (pre-match, paid odds). Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory; thinner ITF/Challenger tail = exec risk. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T15:32:40.384082+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "tennis_total_settlesnipe",
+      "family": "settlement_snipe",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T22:29:01.014591+00:00",
+      "updated": "2026-06-20T22:29:01.014735+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane variety pick (06-20 22:30Z). THIRD settlement-snipe instance: extends the deterministic exogenous-state-vs-book lock mechanism (seeded by mlb_total_settlesnipe, wnba_props_settlesnipe) to a NEW SPORT = genuine diversification away from the MLB-heavy backlog (5 MLB sleeves: outright/kprop/inplay_micro/xmarket_leadlag/total_settlesnipe). Target = KXATPGTOTAL/KXWTAGTOTAL game-count total brackets. MECHANISM: cumulative games played in a match is MONOTONIC-INCREASING, so once total games crosses a bracket boundary the over locks YES P=1 / matching under NO P=0 -- one-sided deterministic edge, no model, no calibration drift, sidesteps the model-vs-line efficiency wall (32+ RETIRED cycles). Snipe the locked side when our WS book lags the ESPN crossing; markout/paper-eval, no live until logged. WHY #1 of candidate set this tick: (a) genuine VARIETY -- new sport, not a 6th MLB clone; mlb_playerprops_settlesnipe (KXMLBKS/HIT/TB via StatsAPI boxscore, VERIFIED keyless) scored ~37 but piles onto MLB; (b) TENNIS IS THE DENSEST surface in our keyless WS capture (ATP/WTA match+set+game-total all top msg counts) = deepest Kalshi liquidity of any settlesnipe target; (c) CONTINUOUS YEAR-ROUND ATP/WTA/Challenger/ITF calendar = high N with NO seasonal cliff (MLB/WNBA settlesnipes face a fall/Oct window; tennis does not); (d) BINDING settlesnipe constraint = free keyless live score feed -- VERIFIED: ESPN site.api tennis/atp+wta scoreboard returns per-set game linescores keyless (today 4 ATP events), monotonic game counts populate live; (e) clean dual ts (ESPN clock + our WS exchange_ts ms), dual-snapshot CLV viable from yes_bid_dollars/yes_ask in capture; (f) mechanism EMPIRICALLY PRE-VALIDATED by weather S1 deterministic sniper (graveyard #7, +0.60 mean viable CLV, killed ONLY on N>=10 count gate -- tennis high N solves exactly that). BEATS: mlb_playerprops_settlesnipe (strong but MLB-redundant); soccer/wc_goals_settlesnipe (goals SPARSE = low bracket-cross N, no KXWC totals in capture); nba_props_settlesnipe (season ending June -> low forward N); tennis SET-winner snipe (set outcome not monotonic-countable -- only game-TOTAL locks); btc_xtenor_termstructure (overlaps crypto_vol_surface RESEARCH); nhl_inplay_micro (off-season); pga_golf (multi-day lumpy). DISTINCT from tennis_inplay_micro (pure order-flow) and tennis_xmarket_leadlag (book-vs-book divergence) -- this is exogenous-state lock-snipe, a different signal class. RISKS: only game-TOTAL/locked-bracket lockable (set/match-winner are not monotonic counting stats); thinner game-total books = exec/liquidity risk on the lagging snipe leg; if Kalshi MMs watch the same ESPN feed and reprice instantly -> no lag -> efficient (the empirical question paper resolves); ESPN feed vs WS update-latency must be measured. Phantom-guard per btc-settlement-false-edge sigma=0 trap; require >=2 entry->close snapshots before trusting CLV (clv-needs-two-snapshots). No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T22:29:01.014737+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "wc_inplay_micro",
+      "family": "microstructure",
+      "stage": "BACKLOG",
+      "created": "2026-06-21T02:06:27.680913+00:00",
+      "updated": "2026-06-21T02:06:27.681092+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane variety pick (06-20 22:04Z) under SATURATED backlog (17 items). In-play directional/markout microstructure on KXWCGAME 3-way books during the live WC26 window \u2014 highest live Kalshi depth of any sports surface this calendar, keyless WS capture, zero existing micro coverage of soccer (worldcup_elo is model-vs-line, efficiency-walled). Score 33/45, top of 10 graveyard-clear candidates.",
+      "history": [
+        {
+          "ts": "2026-06-21T02:06:27.681094+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "wnba_props_settlesnipe",
+      "family": "settlement_snipe",
+      "stage": "BACKLOG",
+      "created": "2026-06-20T21:49:45.501097+00:00",
+      "updated": "2026-06-20T21:49:45.501226+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20 21:45Z). SECOND settlement-snipe instance: extends the deterministic exogenous-state-vs-book mechanism (seeded by mlb_total_settlesnipe) to a NEW sport + SECOND independent keyless datasource = genuine diversification beyond 4 single-book micro (kxbtc/tennis/cs2/mlb) + 3 cross-market lead-lag (tennis/mlb/cs2) + 1 mlb settlesnipe. Target = KXWNBAPTS/KXWNBAREB/KXWNBAAST player counting-stat brackets. MECHANISM: points/rebounds/assists are MONOTONIC-INCREASING, so once a players cumulative stat crosses a bracket boundary the outcome is LOCKED with certainty (over X.5 settles YES P=1, matching under settles NO P=0) and cannot un-resolve -- one-sided deterministic edge, NO model, no calibration drift, no overfitting -> structurally sidesteps the model-vs-line efficiency wall that RETIRED 32+ cycles. Snipe the locked side when our WS book lags the ESPN crossing; markout/paper-eval, no live until logged. Scored ~37/40, #1 of 10 candidates this tick. WHY IT BEATS THE FIELD: (a) the BINDING settlesnipe constraint = a FREE KEYLESS LIVE counting-stat feed; VERIFIED present -- ESPN site.api keyless WNBA scoreboard + /summary?event=<id> per-player boxscore, returns live games matching our exact Kalshi tickers (INDATL/SEAPHX/CHIDAL tonight); this is exactly the data=2 constraint that KILLS tennis/cs2/npb/cricket settlesnipe (no reliable free keyless live feed); (b) IN-SEASON NOW (3 WNBA games tonight, games most nights through Oct) -> high N across players x stat-types x bracket-crossings, the exact ingredient weather S1 (graveyard #7, +0.60 mean viable CLV, killed ONLY on N>=10 count gate) lacked; (c) live Kalshi depth confirmed in fresh capture run-20260620T191048038860Z: 67 distinct KXWNBAPTS tickers w/ quotes, real vol (3035/1401/708), several already in the lock state (bid=0/ask=1.0); (d) clean dual ts (ESPN status clock + our WS exchange_ts ms); dual-snapshot CLV viable from yes_bid_dollars/yes_ask in capture; (e) mechanism EMPIRICALLY PRE-VALIDATED by weather S1 deterministic sniper. BEATS: npb_total_settlesnipe / t20_cricket_settlesnipe (deterministic+monotonic but NO free keyless live feed -> data=2, same fail as tennis/cs2); wc/soccer_goals_settlesnipe (WC keyless feed exists but goals SPARSE = low bracket-cross N, and no KXWC in current capture surface); pga_golf_settlesnipe (strokes not monotonic-lock-friendly, multi-day lumpy settlement, sparse discrete events); another order-flow micro or lead-lag (redundant w/ the 7 already backlogged). DISTINCT from any KXWNBAPTS model-vs-line predictor (that = RETIRED efficiency-wall class) -- this is deterministic exogenous-state lock-snipe, a different signal class. RISKS: WNBA player-prop books THINNER than MLB (nba_elo graveyard flagged NBA *game* markets illiquid -- different surface but a yellow flag); wide spreads on some brackets (0.10-0.59 seen) = exec/liquidity risk on the lagging snipe leg; if Kalshi MMs watch the same ESPN feed and reprice instantly there is no lag -> efficient (the empirical question paper resolves); UNDER side never locks early so edge is one-sided OVER/locked-bracket only. Phantom-guard per btc-settlement-false-edge sigma=0 trap; require >=2 entry->close snapshots before trusting CLV (clv-needs-two-snapshots). No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T21:49:45.501228+00:00",
+          "event": "added at BACKLOG"
+        }
+      ]
+    },
+    {
+      "id": "mlb_outright_paper",
+      "family": null,
+      "stage": "PAPER",
+      "created": null,
+      "updated": "2026-06-23T10:41:00.745003+00:00",
+      "metrics": {
+        "n_settlements": 74,
+        "n_station_days": 13,
+        "paper_pnl": 9.73,
+        "win_rate": 0.4459,
+        "avg_edge": 0.0602,
+        "n_clv": 0,
+        "mean_clv": 0.060187,
+        "clv_bps": null,
+        "clv_significant": false,
+        "beats_market_baseline": false,
+        "provenance": "ledger",
+        "ledger_type": "mlb-ledger",
+        "ledger_path": "data/mlb_paper_ledger_combined.jsonl",
+        "computed_at": "2026-06-23T10:41:00.737325+00:00",
+        "n_cluster_days": 13,
+        "n_pending": 26,
+        "ece": 0.1169,
+        "n_with_outcome": 74,
+        "brier_model": 0.251,
+        "brier_market": 0.2393,
+        "skill_vs_mkt": -0.0489,
+        "auc_model": 0.4647,
+        "auc_market": 0.5652
+      },
+      "note": null,
+      "history": [
+        {
+          "ts": "2026-06-12T04:21:22.002594+00:00",
+          "event": "reconciled at paper: t70 repair: model-provenance mismatch resolved. Registry previously showed xgb_baseline_v2.json (test_auc=0.627, test_brier=0.238); production scorer has always loaded xgb_v4_statcast.json. Registry now documents in-production model (xgb_v4_statcast.json) with honest live AUC=0.610 (Statcast features null post-2023) and test_brier=null (not measured on v4). min_auc_live=0.54 gate is benchmarked against v4 live performance. History bootstrap: entry lacked history array (direct-edit artifact) \u2014 patched factory.py setdefault to recover gracefully."
+        },
+        {
+          "ts": "2026-06-12T16:20:13.212279+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T19:37:59.886969+00:00",
+          "event": "v10 XGBoost (24 features, Brier skill +3.48% holdout) added to ensemble. Scorer now uses 5-model equal-weight ensemble (v5/v7/v8/v9/v10). Platt calibration fitted for v10 (a=0.9503, b=-0.0149). data/mlb_v10_calibration.json written."
+        },
+        {
+          "ts": "2026-06-23T10:41:00.745005+00:00",
+          "event": "metrics computed from ledger (data/mlb_paper_ledger_combined.jsonl)"
+        }
+      ]
+    },
+    {
+      "id": "btc_settlement_arb",
+      "family": "crypto",
+      "stage": "RESEARCH",
+      "created": "2026-06-09T16:43:30.532538+00:00",
+      "updated": "2026-06-12T19:07:35.559886+00:00",
+      "metrics": {
+        "oos_beats_baseline": false,
+        "cheap_test": "2026-06-12 gap-log audit (1340 rows, data/btc_ws_gap_log.jsonl): 1205 positive-tte rows, 767 with net_edge>5c (median 0.987). VERDICT: edges are a MODEL ARTIFACT, not market inefficiency. model_mu drifts $1000s/sec within a single second (63826->67678 @ tte~60s, sig~25), forcing model_p=1.0 against a tight liquid MM market firmly at yes_ask~1.2c. A 60s-from-expiry contract priced 98pts below model = model wrong, not 98pt edge. 10% rows fully degenerate (sigma=0, mu>1e6, post-expiry). No honest executable edge demonstrated.",
+        "verdict": "RETRY_HOLD_not_dead",
+        "kill_gate": "NOT met: gap is a model bug (unstable model_mu), not a measured market edge; real edge (constituent-lag faster c, per validation doc) never measured; needs >=30 matched ms-lead attempts. Also infra-deferred (us-east-1 WAN RTT, parked t43).",
+        "blocking_prereq": "fix model_mu instability before any settlement-arb HPO/promotion is valid",
+        "provenance": "manual"
+      },
+      "note": "needs us-east-1 latency; deferred",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.532656+00:00",
+          "event": "added at RESEARCH"
+        },
+        {
+          "ts": "2026-06-11T19:19:54.137693+00:00",
+          "event": "reconciled at RESEARCH: Strategy-lane drain (stalest un-acted: registry frozen at 'added RESEARCH' 06-09, note 'needs us-east-1 latency; deferred'). NOTE IS STALE+WRONG: this is a KEYLESS avg-vs-avg horizon-mispricing study; us-east-1/FIX (t42/t43) gate LIVE EXECUTION only, not the research. Same fail-closed registry-vs-evidence gap as metar 03:32 / weather_kxhigh 10:30 / mlb t70 / tennis 15:21: t56 (DONE) evidence was never written back. CHEAP-TEST (this tick + t56 artifacts): (a) data capture DENSE & on-disk \u2014 101,446 KXBTC15M lines (10.9k snapshots+85.8k deltas) in just 2 recent ws_ticks runs, ~48 markets/6h (~146 across all runs) \u2014 NOT infra-blocked; (b) keyless BRTI proxy WORKS \u2014 btc_ws_recorder.py joins Coinbase+Kraken+Bitstamp+Gemini (all 4 online), 1340 rows @0.05s; (c) gap ledger engine/live-test/btc_gap_ledger.jsonl n=2: T~5.4min gap=+0.085 net_edge=+0.068 CANDIDATE (thesis-consistent: edge lives in the mid-horizon uncertainty band), T~11min gap=-0.016 NULL. Verdict RETRY/CONTINUE_RESEARCH \u2014 NOT DEAD (real signal, HPO/horizon-sweep never run, no official-settlement join yet so gap!=realized CLV) and NOT PROMOTABLE (n=2 << gate). Stays RESEARCH. Next experiment = scale gap measurement to n>=50 across FROZEN horizons T-5/T-3/T-1 + join Kalshi REST settlements for true Brier/CLV, then HPO horizon/threshold."
+        },
+        {
+          "ts": "2026-06-12T14:17:26.874401+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-12T19:07:35.559735+00:00",
+          "event": "reconciled at RESEARCH: 2026-06-12 drain assessment: BLOCKED by two hard gates \u2014 (1) model_mu instability bug (drifts s/sec within a single second; gap log 1340 rows confirmed all edges are model artifact, not market inefficiency); (2) us-east-1 VPS + FIX cert infra required for real execution (parked t43, gated behind profitability milestone). Constituent-lag real thesis is structurally valid but unmeasured (0 matched ms-lead attempts). Kill gate NOT met. Stay RESEARCH. Re-assess when: (a) model_mu fixed + >=30 honest gap measurements at frozen T-5/T-3/T-1 horizons, or (b) t43 infra available. No action this cycle."
+        }
+      ]
+    },
+    {
+      "id": "worldcup_elo",
+      "family": "sports",
+      "stage": "RESEARCH",
+      "created": "2026-06-14T13:31:50.251276+00:00",
+      "updated": "2026-06-24T10:00:00.000000+00:00",
+      "metrics": {
+        "cheap_backtest_finals_2018_2022_n": 128,
+        "squad_logloss_wc_pooled": 1.0215,
+        "squad_skill_vs_base_pct": 4.12,
+        "elo_logloss": 1.178,
+        "base_rate_logloss": 1.0869,
+        "logloss_skill_vs_base_pct": 4.12,
+        "beats_base_rates": true,
+        "retry_condition_met": true,
+        "climate_delta_pct": 0.03,
+        "climate_gate_passed": false,
+        "model_tag": "t152-squadDC",
+        "note": "t152: squad-strength model (ClubElo aggregation + Poisson) +4.12% OOS vs base rates on WC finals pooled (n=128); RETRY condition cleared (was -8.4% w/ plain Elo). Climate ablated: +0.03% delta (FAIL gate). WC2026 squads wired (29/64 teams; remainder DC-Elo fallback). 50/50 ensemble in wc_scorer.py (squad+DC-Elo). Prior plain-Elo artifacts unchanged in worldcup_elo_backtest.md.",
+        "provenance": "ledger",
+        "n_settlements": 32,
+        "n_station_days": 2,
+        "n_cluster_days": 2,
+        "n_pending": 25,
+        "paper_pnl": -1.29,
+        "win_rate": 0.3438,
+        "clv_bps": 1222.09,
+        "n_clv": 32,
+        "clv_significant": false,
+        "ece": 0.145,
+        "n_with_outcome": 32,
+        "brier_model": 0.1691,
+        "brier_market": 0.1658,
+        "skill_vs_mkt": -0.0196,
+        "auc_model": 0.7554,
+        "auc_market": 0.7727,
+        "ledger_path": "data/wc_paper_ledger.jsonl",
+        "computed_at": "2026-06-24T03:02:50.167907+00:00",
+        "gate_eval_t201": "PASS-BORDERLINE",
+        "gate_n_settled": 30,
+        "gate_mean_clv": 0.09,
+        "gate_clv_z": 1.35,
+        "gate_clv_significant": false,
+        "gate_auc_model": 0.7919,
+        "gate_auc_market": 0.811,
+        "gate_skill_vs_mkt": 0.0094,
+        "gate_concentration_ok": true,
+        "gate_verdict": "criteria met; panel required before micro-live promotion; AUC model < market",
+        "next_action": "run harness/panel.py then spend.py gate for micro-live only",
+        "gate_eval_t201_n32": "HOLD",
+        "gate_n_settled_n32": 32,
+        "gate_mean_clv_n32": 0.054,
+        "gate_clv_z_n32": 0.79,
+        "gate_clv_significant_n32": false,
+        "gate_skill_vs_mkt_n32": -0.0196,
+        "gate_auc_model_n32": 0.7554,
+        "gate_auc_market_n32": 0.7727,
+        "gate_concentration_ok_n32": true,
+        "gate_verdict_n32": "HOLD: CLV positive but not significant (z=0.79); model skill vs market NEGATIVE (-0.020); 25 open positions pending; re-evaluate at n>=45 or when AUC model > market",
+        "n_open_positions": 25
+      },
+      "note": "Intl-soccer match-winner (3-way home/draw/away) on Kalshi WC26 match-level books. Keyless data: eloratings.net 1872-2025 + match-result DBs. Model: international Elo + Poisson goals. Baseline: Kalshi mid + Polymarket (5-8c divergence) + bookmaker odds. Ranked #1 of 11 (score 35/40): only candidate combining live+liquid ($182M/48+ mkts, group stage running now) + dense fast settlement cadence (multi-match/day for ~5wk). Focus match-winner not tournament-outright (AMM-thin long tail). Family durable: engine transfers to club leagues post-WC. No model build, no spend.",
+      "history": [
+        {
+          "ts": "2026-06-14T13:31:50.251438+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-14T14:03:18.580383+00:00",
+          "event": "BACKLOG -> RESEARCH: promoted"
+        },
+        {
+          "ts": "2026-06-14T14:36:14.489753+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-14T14:36:20.259813+00:00",
+          "event": "RESEARCH -> BACKLOG: DEMOTED: cheap backtest: plain Elo worse than base rates on WC finals (-8.4% logloss skill, n=128); +23% broad-set skill was qualifier-mismatch artifact. Fair-value anchor no better than market base rates -> no basis to exploit Kalshi-Poly divergence. RETRY not DEAD: revive if richer model (Dixon-Coles/squad-value/form) beats base rates OOS on finals, or live Kalshi-vs-Poly odds show settleable divergence w/ forward CLV. Artifact data/worldcup_elo_backtest.md"
+        },
+        {
+          "ts": "2026-06-14T15:11:30.464766+00:00",
+          "event": "BACKLOG -> RESEARCH: promoted"
+        },
+        {
+          "ts": "2026-06-15T03:51:52.190656+00:00",
+          "event": "RESEARCH -> BACKLOG: DEMOTED: Sync stage to the 14:36 demotion (stage field was left RESEARCH while history already recorded RESEARCH->BACKLOG \u2014 stale-state bug that made factory.py list show it as a live #1 edge). ALSO empirically refuted the ranking premise: scanned 1200 open Kalshi events + 7 plausible WC series tickers (KXWORLDCUP*/KXWC*/KXFIFAWC) \u2014 ALL 404/absent (MLB sanity KXMLBGAME=39 confirms probe valid). There is NO live Kalshi World Cup match-winner surface, so the note's 'live+liquid $182M/48+ mkts group stage running now' is false and revive-condition (b) (collect live Kalshi-vs-Poly divergence) is currently IMPOSSIBLE \u2014 no Kalshi side to collect. Revive only via condition (a): a richer fair-value model beating base rates OOS on WC finals."
+        },
+        {
+          "ts": "2026-06-23T20:44:35.521038+00:00",
+          "event": "BACKLOG -> RESEARCH: KXWCGAME paper pipeline live since 06-16; 30 settled fills in data/wc_paper_ledger.jsonl \u2014 advancing to RESEARCH to evaluate CLV gate"
+        },
+        {
+          "ts": "2026-06-23T20:44:40.987359+00:00",
+          "event": "metrics computed from ledger (data/wc_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-24T00:44:25.752225+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-24T02:43:34.341017+00:00",
+          "event": "metrics computed from ledger (data/wc_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-24T02:44:07.065492+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-24T03:02:50.168063+00:00",
+          "event": "metrics computed from ledger (data/wc_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-24T10:00:00.000000+00:00",
+          "event": "t152: RETRY condition met \u2014 squad-strength model (ClubElo aggregation + Poisson goals) beats base rates +4.12% OOS on WC finals pooled (n=128). Climate ablation FAIL (+0.03% delta). wc2026_squads.csv created (29/64 teams, WC2022 proxy). 50/50 ensemble squad+DC-Elo wired in wc_scorer.py (MODEL_TAG=t152-squadDC). engine_ref updated to research/soccer_squad_model.py. Backtest: data/worldcup_squad_backtest.md"
+        }
+      ]
+    },
+    {
+      "id": "xvenue_divergence",
+      "family": "cross_venue",
+      "stage": "RESEARCH",
+      "created": "2026-06-10T05:19:14.953529+00:00",
+      "updated": "2026-06-12T19:09:23.712480+00:00",
+      "metrics": {
+        "oos_beats_baseline": false,
+        "n_paired_observations": 0,
+        "same_payoff_pairs": 0,
+        "executable_pair_rate": 0.0,
+        "cheap_test": "2026-06-12 probe: kalshi_p_above_spot=null, poly_p_up=null; no paired executable signal",
+        "option_set": [
+          {
+            "name": "crypto_cdf_bridge",
+            "score": 41,
+            "rank": 3,
+            "why": "Kalshi absolute strike ladder vs Polymarket Up/Down windows are not same payoff/horizon; cannot backtest honestly without bridge assumptions"
+          },
+          {
+            "name": "macro_exact_payoff_collector",
+            "score": 74,
+            "rank": 1,
+            "why": "Fed/CPI style markets can be same payoff across venues; keyless APIs; creates clean paired snapshots for divergence and markout"
+          },
+          {
+            "name": "retire_now_structural",
+            "score": 55,
+            "rank": 2,
+            "why": "Current crypto implementation is invalid, but kill gate needs >=30 matched attempts or decisive no-counterparty market-hours pass; not exhausted"
+          }
+        ],
+        "chosen_next": "macro_exact_payoff_collector via existing t79/t63-style market-hours pair discovery; require 30 matched same-payoff snapshots before HPO/modeling",
+        "verdict": "RETRY_HOLD_not_dead",
+        "provenance": "manual"
+      },
+      "note": "probe built 2026-06-10; structural mismatch Kalshi-absolute vs Poly-directional; best overlap: macro (FOMC/CPI) when active; crypto: CDF construction needed; Poly liq thin ~10k; NO hist Poly data \u2014 collect before paper; engine=research/xvenue_divergence.py",
+      "history": [
+        {
+          "ts": "2026-06-10T05:19:14.953670+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-10T21:38:52.291587+00:00",
+          "event": "BACKLOG -> RESEARCH: redteam committee 2026-06-10: ITERATE unanimous; advance from BACKLOG to RESEARCH for probe build"
+        },
+        {
+          "ts": "2026-06-12T01:19:15.731007+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-12T19:09:23.712275+00:00",
+          "event": "reconciled at RESEARCH: 2026-06-12 drain: macro_exact_payoff_collector.py confirmed working (dry-run executed). KXFED + KXCPI both between event cycles \u2014 0 open markets today. 0/30 paired observations collected. No data to HPO. Collector script ready and correct (exact-payoff gate, horizon-slack matching). Stage stays RESEARCH \u2014 purely a timing issue (FOMC ~6-7 wks, CPI monthly). Action: re-run collector automatically during next FOMC/CPI window. No code work needed. Next eval: schedule collection tick keyed to next CPI release."
+        }
+      ]
+    },
+    {
+      "id": "crypto_vol_surface",
+      "family": "crypto",
+      "stage": "RETIRED",
+      "created": "2026-06-09T16:43:30.680736+00:00",
+      "updated": "2026-06-22T05:45:24.940692+00:00",
+      "metrics": {
+        "first_eval": "2026-06-12T12:55Z",
+        "cheap_test": "KXBTCD recorded ladder, single snapshot 2026-06-11T02:57Z, 200 rows across multiple expiries",
+        "data_state": "SINGLE time-snapshot only; no time series -> no markout/CLV/edge measurable",
+        "ladder_quality": "grouped by close_time, ladders monotone+tight (yes spread median 1c) -> BTC daily market efficient",
+        "apparent_violations": "24 monotonicity breaks were a parse artifact (mixed expiries collapsed on same strike), NOT real arb",
+        "redundancy": "intra-ladder no-arb angle overlaps kalshi_noarb_scanner (already efficient, 0 locks)",
+        "distinct_edge": "cross-tenor implied-vol disagreement (15M/hourly/daily); KXBTC15M recorded only 1 point -> surface not yet recordable",
+        "blocker": "need multi-tenor BTC ladder TIME-SERIES recorder before any backtest",
+        "verdict": "RETRY_HOLD_not_dead",
+        "hpo": "N/A - no time series to sweep yet",
+        "provenance": "manual",
+        "feasibility": "confirmed",
+        "data_source": "keyless KXBTCD threshold ladder, own WS capture runs 20260622T011047Z+041048Z (ticker yes_bid/ask), 4 daily expiries, 188-strike front ladder, 540 60s CDF snapshots",
+        "method": "reconstruct market-implied S(T)=P(BTC>T) per strike; fit 3 smooth surfaces {normal CDF, lognormal CDF, isotonic monotone}; residual=mid-model; FADE deviations (sell rich/buy cheap) single-leg crossing touch, exit mid t+h; net of half-spread+Kalshi fee ceil(0.07*P*(1-P)); HPO model x thr{.03,.05,.08} x h{3,5,10}min",
+        "vol_cheaptest_2026-06-22": "isotonic produced 0 tradeable deviations (ladder already monotone/coherent, |resid|<3c). Parametric fade GROSS (pre-fee, pays spread) <=0 in all cells: lognormal -0.0025..-0.0072 z=-2.3..-2.5 (n=132-145), normal ~0 (z+0.55..-0.95, n=45-51); NET fee-killed z=-2.5..-12.6; win-rate 5-27%. Sign check clean (mean resid ~0, isotonic exactly 0).",
+        "vol_verdict": "RETRY_HOLD: surface-deviation-FADE arm REFUTED at gross level (well-powered, converged across thr x h x model) -- per-strike deviations from a smooth surface are genuine smile/skew the market prices correctly, NOT mispricings. The KXBTCD distribution is internally arbitraged (isotonic resid~0). NOT DEAD: canonical variance-risk-premium arm (market-implied sigma vs realized sigma) is UNTESTED here -- 41-min windows cannot time-scale to a daily-expiry realized vol; revive needs multi-day full-window capture OR external Deribit BTC IV comparison.",
+        "n_settlements": 0,
+        "paper_pnl": 0,
+        "oos_beats_baseline": false,
+        "beats_market_baseline": false,
+        "clv_significant": false,
+        "phantom_guard": "isotonic mean residual exactly 0; normal/lognormal mean resid -0.0045/-0.0052 (~centered, no one-sided bias); tradeable filter 0.05<=mid<=0.95; require actual t+h exit snapshot; gross reported separately from net to distinguish fee-wall from no-signal"
+      },
+      "note": "keyless public crypto",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.680861+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-12T11:46:23.466826+00:00",
+          "event": "BACKLOG -> RESEARCH: pipeline drain: keyless-first BACKLOG->RESEARCH per adjudicate-all auto-transition; ahead of macro_cpi_cdf (needs FRED/BLS keys)"
+        },
+        {
+          "ts": "2026-06-12T12:48:55.126758+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-12T19:09:15.686775+00:00",
+          "event": "reconciled at RESEARCH: 2026-06-12 drain: New multi-tenor recorder built (harness/btc_vol_surface_recorder.py). First 2 snapshots captured: KXBTCD 238 markets/snapshot (2 time-points). KXBTCH series confirmed inactive on Kalshi (0 markets). KXBTC15M captures 1 market near expiry. Cross-tenor surface requires time series (min 200 snapshots per tenor). Need: schedule recorder every 15-30 min to build dataset. Until 200+ snapshots accumulated, no HPO possible. Stage stays RESEARCH. Next: wire recorder to cron (low-priority, passive data collection)."
+        },
+        {
+          "ts": "2026-06-22T04:56:01.885117+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-22T05:45:24.940546+00:00",
+          "event": "RESEARCH -> RETIRED: parked (graveyard #14): surface-deviation FADE arm refuted gross+converged on KXBTCD WS capture; ladder internally arbitraged (isotonic resid~0). NOT DEAD - VRP arm (implied-vs-realized sigma) untested, revive on multi-day full-window capture or Deribit IV feed."
+        }
+      ]
+    },
+    {
+      "id": "event_overreaction_fade",
+      "family": "event_reversion",
+      "stage": "RETIRED",
+      "created": "2026-06-21T00:54:48.406443+00:00",
+      "updated": "2026-06-22T03:40:21.049279+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane VARIETY pick (06-20 20:53Z) under a SATURATED backlog (15 untested pre-add). NEW MECHANISM: event-anchored overreaction/reversion \u2014 after a discrete state change (MLB run scored, sharp KXBTC move) does the Kalshi contract overshoot fair and mean-revert over next N sec? Distinct from microstructure-directional (no event anchor), settlement-snipe (deterministic P=1/0), x-market leadlag, expiry-convergence, MM. Top of new-mechanism option set: reuses OUR keyless captured ticks (data/ws_ticks,data/ticks) \u2014 timestamp-clean, free, ~$0 impl, frequent settlement, fits open live-microstructure lane. Graveyard-clear.",
+      "history": [
+        {
+          "ts": "2026-06-21T00:54:48.406593+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-22T03:34:24.772441+00:00",
+          "event": "BACKLOG -> RESEARCH: strategy drain 06-22: cheap-backtest orthogonal mean-reversion mechanism"
+        },
+        {
+          "ts": "2026-06-22T03:40:21.049139+00:00",
+          "event": "RESEARCH -> RETIRED: recheck-buried: endogenous KXBTC fade refuted (gross-negative continuation, converged 27-cell HPO); exogenous-sports-event arm untested -> graveyard recheck"
+        }
+      ]
+    },
+    {
+      "id": "kalshi_noarb_scanner",
+      "family": "microstructure",
+      "stage": "RETIRED",
+      "created": "2026-06-09T16:43:30.710171+00:00",
+      "updated": "2026-06-12T19:07:27.208184+00:00",
+      "metrics": {
+        "scans": 7,
+        "last_scan": "2026-06-12T10:46:30.421772+00:00",
+        "markets_seen_total": 198,
+        "exhaustive_ladders_total": 27,
+        "raw_locks_total": 0,
+        "confirmed_locks_total": 0,
+        "fetch_errors_total": 0,
+        "ledger_path": "data/noarb_scan_ledger.jsonl",
+        "provenance": "scan-ledger",
+        "computed_at": "2026-06-12T10:46:35.165650+00:00",
+        "nonexhaustive_skips_total": 6
+      },
+      "note": "keyless cross-bracket arb on Kalshi",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.710285+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-09T20:00:51.006252+00:00",
+          "event": "BACKLOG -> RESEARCH: structural keyless edge: bracket ladder violations, audit-identified F7 fixes needed before PAPER"
+        },
+        {
+          "ts": "2026-06-10T04:05:10.043506+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-10T14:05:01.886544+00:00",
+          "event": "metrics computed from ledger (data/noarb_scan_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-11T00:01:48.836017+00:00",
+          "event": "metrics computed from ledger (data/noarb_scan_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-11T09:33:02.146790+00:00",
+          "event": "metrics computed from ledger (data/noarb_scan_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-11T19:41:51.867847+00:00",
+          "event": "metrics computed from scan ledger (data/noarb_scan_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T03:46:22.438901+00:00",
+          "event": "metrics computed from scan ledger (data/noarb_scan_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T10:46:35.165794+00:00",
+          "event": "metrics computed from scan ledger (data/noarb_scan_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T19:07:27.208019+00:00",
+          "event": "RESEARCH -> RETIRED: Buried DEAD: 7 scans, 363 markets (27 exhaustive bracket ladders + 336 cumulative KXBTCD/KXETHD), 0 raw locks, 0 confirmed locks. Monotonicity violations (1-2 per run) are 1-cent floor artifacts, not executable arb. Kalshi bracket markets are structurally efficient. No edge signal found after systematic scanning; continuing adds no new information."
+        }
+      ]
+    },
+    {
+      "id": "kxbtc_microstructure",
+      "family": "microstructure",
+      "stage": "RETIRED",
+      "created": "2026-06-20T10:29:31.731064+00:00",
+      "updated": "2026-06-21T17:25:32.810886+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20). Short-horizon directional signal in KXBTC hourly/range markets from OUR sub-second WS order-flow capture (order-book imbalance + trade-flow toxicity + queue dynamics), paper/markout-evaluated. Distinct from btc_settlement_arb (latency-arb, PARKED needs us-east-1 RTT): this is a non-latency directional flow signal. Scored #1 of 11 candidates (36/40): KXBTC = most-liquid Kalshi market; 143GB own keyless WS capture, growing; sub-second clean timestamps (4ms median, validated, dropped=0 current run); live yes_bid/ask baseline in capture; hourly cadence -> high N in days; $0 paper-viable, replay scaffolding partly built. Beats crypto_vol_surface (multi-tenor not yet recorded + daily ladder already efficient 1c spreads), eth_microstructure (BTC strictly more liquid, same pipeline), model-vs-line class (RETIRED after 32+ efficient cycles), macro CPI/claims/Fed (monthly/weekly cadence -> N too slow to gate). Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T10:29:31.731192+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-21T17:25:32.810757+00:00",
+          "event": "BACKLOG -> RETIRED: taker-directional flow sub-spread (real signal, fully priced into spread); pivots to maker-side mm_spread_capture \u2014 see graveyard recheck"
+        }
+      ]
+    },
+    {
+      "id": "mlb_kprop",
+      "family": "sports",
+      "stage": "RETIRED",
+      "created": "2026-06-14T09:27:32.161823+00:00",
+      "updated": "2026-06-21T13:59:18.183219+00:00",
+      "metrics": {
+        "n": 401,
+        "date_fold": "2026-06-10",
+        "model_version": "pitcher-k-baseline-v0",
+        "brier_skill_vs_baseline": 0.3369,
+        "brier_skill_vs_market": -0.0733,
+        "ece": null,
+        "noise_floor": -0.3947,
+        "market_gate_cleared": false,
+        "note": "3-fold confirmed (N=401, Jun10/11/12): skill_vs_mkt=-0.073 consistently negative. ECE=0.038 (good calibration). Model fails vs market: missing injury/pull signal + fresh 2026 form for new pitchers. Paper ledger seeded observe-only (153 rows, 22 pitchers, Jun 14). Data pipeline now fully reproducible: statcast updated to Jun-12 via pybaseball. RETRY: close ~7pp gap by adding one of: park K factors, BF fatigue curve, or 2026 form weight increase.",
+        "provenance": "manual",
+        "n_folds": 3,
+        "date_folds": "2026-06-10,2026-06-11,2026-06-12",
+        "per_fold": {
+          "2026-06-10": {
+            "n": 157,
+            "skill_vs_mkt": -0.0384
+          },
+          "2026-06-11": {
+            "n": 80,
+            "skill_vs_mkt": -0.2055
+          },
+          "2026-06-12": {
+            "n": 164,
+            "skill_vs_mkt": -0.0589
+          }
+        },
+        "paper_ledger_path": "data/mlb_kprop_paper_ledger.jsonl",
+        "paper_ledger_n_observe": 153,
+        "paper_ledger_date": "2026-06-14",
+        "n_settlements": 0,
+        "n_station_days": 0,
+        "n_pending": 982,
+        "paper_pnl": 0,
+        "win_rate": null,
+        "clv_bps": null,
+        "n_clv": 0,
+        "clv_significant": false,
+        "beats_market_baseline": false,
+        "ledger_path": "data/mlb_kprop_paper_ledger.jsonl",
+        "computed_at": "2026-06-21T13:00:06.357175+00:00",
+        "forward_eval_2026-06-21": {
+          "model_id": "pitcher-k-perpa-v2",
+          "n_settled": 595,
+          "game_days": 6,
+          "date_span": "2026-06-15..2026-06-20",
+          "distinct_pitchers": 78,
+          "top_pitcher_edge_mass_share": 0.051,
+          "brier_model": 0.154,
+          "brier_market": 0.1466,
+          "skill_vs_market": -0.0508,
+          "skill_vs_base": 0.383,
+          "pitcher_clustered_P_skill_gt0": 0.069,
+          "ci95": [
+            -0.116,
+            0.013
+          ],
+          "skill_vs_market_ex_top_pitcher": -0.0556,
+          "market_gate_cleared": false
+        },
+        "verdict": "forward-fail (clean multi-day, non-concentrated); market strictly beats pregame public-statcast model; structural live-info gap",
+        "tool": "mlb_kprop_forward_eval.py"
+      },
+      "note": "KXMLBKS pitcher-strikeout Poisson model. v0: Brier skill vs baseline +0.4387, vs market -0.0384 (gate not cleared, N=157 June 10). v1 offline recal: brier_skill=0.491, market=0.459 \u2192 v1 beats market by +5.84%, but bf_2026 implementation incomplete. Next: implement bf_2026_used_where_available + validate park K factors to reproduce recal \u2192 if cleared, seed paper ledger.",
+      "history": [
+        {
+          "ts": "2026-06-14T09:27:32.161957+00:00",
+          "event": "added at RESEARCH"
+        },
+        {
+          "ts": "2026-06-14T09:27:38.908485+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-14T10:07:18.066747+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-14T10:41:01.480887+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-14T10:43:08.415426+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-21T09:09:29.852936+00:00",
+          "event": "metrics computed from ledger (data/mlb_kprop_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-21T10:03:41.587286+00:00",
+          "event": "metrics computed from ledger (data/mlb_kprop_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-21T13:00:06.357325+00:00",
+          "event": "metrics computed from ledger (data/mlb_kprop_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-21T13:59:02.747830+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-21T13:59:18.182982+00:00",
+          "event": "RESEARCH -> RETIRED: v2 per-PA forward-fails KXMLBKS market: N=595, 6 days (06-15..06-20), 78 pitchers, top edge-mass 5.1% (clean), skill_vs_market=-0.051, pitcher-clustered P(skill>0)=0.069. Earlier single-day +ves were concentration overfits. Parked, not dead."
+        }
+      ]
+    },
+    {
+      "id": "mlb_outright_residual",
+      "family": "sports",
+      "stage": "RETIRED",
+      "created": "2026-06-09T16:43:30.620572+00:00",
+      "updated": "2026-06-22T07:32:48.260820+00:00",
+      "metrics": {
+        "feasibility": "confirmed",
+        "kalshi_liquidity": "deep: KXMLBGAME ~88 open/game-day, top OI ~1.8M contracts, 1c spreads",
+        "external_feed": "keyless MLB StatsAPI (schedule+live winProbability), no key",
+        "edge_caveat": "markets near-efficient (penny spreads); pregame WP residual likely thin; live in-game WP-vs-repricing-latency is the real edge but needs 24/7 logging (deferred infra)",
+        "next": "build keyless KXMLBGAME+StatsAPI tick recorder, collect data before paper",
+        "computed_at": "2026-06-14T13:56:03.599544+00:00",
+        "provenance": "manual",
+        "n_settlements": 14,
+        "n_station_days": 14,
+        "paper_pnl": 1.63,
+        "win_rate": 0.5,
+        "avg_edge": 0.0686,
+        "n_clv": 14,
+        "mean_clv": -0.385247,
+        "clv_bps": -3852.47,
+        "clv_significant": false,
+        "beats_market_baseline": false,
+        "ledger_type": "mlb-ledger",
+        "ledger_path": "data/mlb_paper_trades",
+        "leadlag_cheap_test": "2026-06-12 KXMLBGAME CHC@COL delta replay joined to MLB StatsAPI WP: 1142 book samples, 71 WP plays, 64 aligned 30s grid points over 31.7min overlap; mid-WP contemp corr=0.935; best lead-lag diff corr at lag=0 (r=0.335), not positive WP-leads lag (60s r=0.090, 120s r=-0.084, 180s r=-0.100).",
+        "leadlag_verdict": "HOLD_RETRY_not_promotable: one game shows Kalshi book moves contemporaneously with StatsAPI WP, no tradeable lag evidence yet; need multi-game replay and CLV logger before escalation.",
+        "option_ranking": "1 lead-lag replay vs StatsAPI WP (chosen: direct thesis test, timestamp-clean); 2 continue paper ledger (positive n=5 but underpowered); 3 v6/v7-v9 model variants (logreg v6 failed prereg gate, XGB variants need CLV and avoid adaptive leakage).",
+        "oos_beats_baseline": false,
+        "ingame_cheap_test_2026-06-21": "26 games / 3 days (06-19..06-21), 1492 joined StatsAPI-WP + KXMLBGAME mid rows at ~30s cadence. (a) Lead-lag corr(dwp_t, dmid_t+k): k=0 +0.655, k=1 +0.025, k=2 -0.067, k=3 -0.006 -> WP does NOT predict future mid; book reprices contemporaneously. (b) Executable divergence->convergence markout swept thr={0.03,0.05,0.08,0.10} x h={1,2,3}: net markout/contract NEGATIVE in ALL 12 cells, strongly sig at h=1 (z=-4.68..-2.40). Trading |wp-mid| divergence loses even before full fees.",
+        "ingame_verdict": "RETRY_HOLD_not_dead: 30s-cadence in-game WP-residual edge EXHAUSTIVELY NULL (thr x horizon swept, converged, all negative). Market mid is the better estimate; WP divergences are feed-staleness noise, not mispricing. Only structurally-distinct untested variant = sub-second repricing-latency capture, which is INFRA-BLOCKED (needs faster-than-30s poller/WS) and unmeasurable on current data. NOT promotable."
+      },
+      "note": "tested on main",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.620714+00:00",
+          "event": "added at RESEARCH"
+        },
+        {
+          "ts": "2026-06-09T16:44:07.599131+00:00",
+          "event": "RESEARCH -> RETIRED: demo kill"
+        },
+        {
+          "ts": "2026-06-09T18:08:14.025308+00:00",
+          "event": "reconciled at RESEARCH: bootstrap 'demo kill' RETIRED event was a demo, hand-reverted; RESEARCH is canonical (operator audit 2026-06-09)"
+        },
+        {
+          "ts": "2026-06-10T23:04:09.578587+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-12T00:58:29.822425+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T00:59:07.135612+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T01:08:02.921848+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T02:16:25.412334+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T03:03:48.659571+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T09:24:14.323530+00:00",
+          "event": "reconciled at RESEARCH: v6 parsimonious gate FAIL 2026-06-12: Brier skill +1.46% (gate +2.0%), z=1.74 (gate 1.96), n=1384 holdout=2023. Pre-reg 5-feature logreg (team_elo_diff, sp_ra_diff, rd_diff, bullpen_drain_diff, park_factor). Artifact: data/mlb_elo_v6_model.json. Per pre-reg protocol: RETRY/CONTINUE_RESEARCH \u2014 single-season n thin; sp_ra_diff signal may need richer pitcher data. Stage stays RESEARCH."
+        },
+        {
+          "ts": "2026-06-12T09:49:59.146232+00:00",
+          "event": "metrics computed from MLB ledger (data)"
+        },
+        {
+          "ts": "2026-06-12T17:22:09.260009+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-12T17:22:19.661065+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-12T19:07:46.161113+00:00",
+          "event": "reconciled at RESEARCH: 2026-06-12 drain assessment: Two sub-theses evaluated \u2014 (1) LEAD-LAG DEAD: CHC@COL replay showed Kalshi book moves contemporaneously with StatsAPI WP (lag=0 best r=0.335), no tradeable lag at T+60s/120s/180s. Do not advance this angle. (2) MODEL ITERATION: v7/v8/v9 XGB all gate_cleared=true on holdout-2023 (v7=2.34%, v8=2.14%, v9=2.37%), but live-2026 skill mixed: v8 best live (+0.52%), v9 slightly negative (-0.05%). v6 logreg missed gate (+1.46% vs +2.0%). Stay RESEARCH on model track \u2014 operational paper trading already running via mlb_outright_paper (v4 XGBoost). Next: accumulate more game data for v8 live confidence; park v9 as overfit candidate until OOS widens. No stage change."
+        },
+        {
+          "ts": "2026-06-14T13:56:03.599699+00:00",
+          "event": "metrics computed from MLB ledger (data/mlb_paper_trades)"
+        },
+        {
+          "ts": "2026-06-21T15:53:30.096201+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-22T07:32:48.260699+00:00",
+          "event": "RESEARCH -> RETIRED: RESEARCH->RETIRED [parked]: pregame paper neg-CLV + in-game 30s exhaustive null; only sub-second arm remains (infra-blocked). RETRY-not-dead per fail-closed gate."
+        }
+      ]
+    },
+    {
+      "id": "mlb_xmarket_leadlag",
+      "family": "microstructure",
+      "stage": "RETIRED",
+      "created": "2026-06-20T19:50:30.623148+00:00",
+      "updated": "2026-06-22T02:24:33.058438+00:00",
+      "metrics": {
+        "feasibility": "confirmed",
+        "data_source": "keyless Kalshi WS capture run-20260621T161051150984Z (12h)",
+        "xmarket_cheaptest_2026-06-21": "15 MLB games, 1650 overlap-min, 5s grid, ticker mids of most-active market per series/game (GAME/SPREAD/TOTAL). Lead-lag corr of per-step mid changes oriented to +lag0: GAME<->SPREAD peak@0 r=+0.042 (noise floor, all |r|<0.11 = contemporaneous/weak); GAME<->TOTAL peak@0 r=+0.074 (contemporaneous, TOTAL ~orthogonal to win-prob); SPREAD->TOTAL lag0 +0.074 with apparent lead peak@+5s r=+0.201. Executable markout (leader step-move>thr -> take lagger same dir, hold h, net 1c spread) NEGATIVE in ALL 18 cells: GAME->SPREAD z=-3.6..-1.7, GAME->TOTAL z=-2.7..-1.6, SPREAD->TOTAL z=-2.0..-0.6. Gross move on the one positive corr (SPREAD->TOTAL) ~+0.5c < ~1c spread -> sub-spread.",
+        "leadlag_verdict": "RETRY_HOLD_not_promotable: cross-book MLB lead-lag at 5s grid is effectively efficient. Two of three pairs contemporaneous; the single positive correlation (SPREAD->TOTAL +0.20 @5s) is consistent with forward-fill staleness (same artifact class as mlb_outright_residual ingame WP test) and is sub-spread in realized markout. No tradeable lag. HPO NOT exhausted: 1s grid (sub-5s lead) + spread-conditioned entry (only when lagger spread <= realized gross move) untested; RETRY not DEAD per HPO gate.",
+        "n_settlements": 0,
+        "paper_pnl": 0,
+        "oos_beats_baseline": false,
+        "beats_market_baseline": false,
+        "clv_significant": false,
+        "provenance": "manual",
+        "n_games": 14,
+        "overlap_min": 1180,
+        "xcorr_peak_game_spread_r": 0.204,
+        "xcorr_peak_lag_s": 5,
+        "markout_realcost_best_mean_per_ct": 0.0054,
+        "markout_realcost_best_z": 0.25,
+        "spread_half_median": 0.005,
+        "verdict": "DEAD_structural_efficiency: coupled same-game Kalshi books reprice simultaneously, no tradeable single-leg lag (same class as mlb_outright_residual WP null)",
+        "other_pairs": "GAME-TOTAL & SPREAD-TOTAL efficient/neg (z to -3.5)",
+        "hpo_grid_sweep_2026-06-21": "grids {1,2,5}s on run-20260621T161051Z (15 MLB games, 2322 overlap-min). Cross-corr of per-step mid diffs peaks at lag0 (contemporaneous) for GAME-SPREAD & SPREAD-TOTAL; lag0 corr GROWS as grid coarsens (GAME->SPREAD +0.125/+0.187/+0.322 @1/2/5s) = simultaneous-repricing aliasing not a lead. Only lead = GAME->TOTAL @+1step r~0.05 (noise floor <0.11, vanishes @5s).",
+        "markout_realspread_net": "NEGATIVE in ALL 54 cells (pair x thr{.02,.03,.05} x h{1,2,3} x grid{1,2,5}s), z=-2 to -12, WORST at finest 1s grid (-0.029/ct z=-12). 5s test positive blip was flat-1c cost underpricing artifact; real lagger half-spread kills it.",
+        "hpo_status": "EXHAUSTED+CONVERGED: finer grid monotonically worse, lead at noise floor, no search-space direction approaches profitability"
+      },
+      "note": "RESEARCH-lane top-ranked (06-20 19:47Z). SECOND cross-market lead-lag family (new instance of the diversifying mechanism, not a 5th single-book clone). Intra-game lead-lag among simultaneously-live coupled Kalshi books on the SAME MLB game: deep/fast money-line winner (KXMLBGAME) vs run-line/spread (KXMLBSPREAD) vs total-runs (KXMLBTOTAL). All three are rigorous deterministic functions of ONE run-distribution -> strongest structural coupling of any sport in our capture (tighter than tennis set<->match). Hypothesis: after a discrete scoring event (run/out/inning state change) the deepest book reprices first; trade the LAGGING coupled book SINGLE-LEG DIRECTIONAL toward the implied move, hold to convergence. Markout/paper-eval, no live until logged. Why #1 of candidates this tick: (a) MLB is the DENSEST coupled multi-book cluster in our keyless WS capture -- KXMLBSPREAD is the SINGLE LARGEST series at 242k msgs/1.5M-line slice, + GAME 84k (+ TOTAL), a 326k+ coupled pair beating the tennis pair the prior tick added; (b) IN-SEASON now (June, ~15 liquid games/day = high N, time-boxed window that closes in the fall -- urgency crypto term-structure lacks); (c) strongest coupling identity of any sport -> cleanest lead-lag test. Clean dual ts (exchange_ts ms + received_at). Baseline = ticker yes_bid_dollars/yes_ask_dollars mid (*_dollars migration; dual-snapshot CLV viable). ~20s pitch cadence = NOT latency-critical, no us-east-1 needed. DISTINCT from mlb_inplay_micro (single-book pure-flow) and mlb_outright_paper/mlb_kprop (pregame model-vs-line) -- this is cross-book divergence, a different signal. KEY DISTINCTION from buried noarb/kalshi_noarb_scanner (BROKEN): that was LOCKED TWO-LEG cross-bracket arb on a hard sum=1 identity, fees compounded on both legs; this is SINGLE-LEG DIRECTIONAL across two SOFT-coupled separate books -> one fee, kill does not apply. Beats CS2 game<->map lead-lag (runner-up: GAME 133k+MAP 81k, coupled but esports books thinner + map-state harder keyless) and BTC cross-tenor term-structure (KXBTCD/15M coherence -- overlaps crypto_vol_surface RESEARCH, always-available so no in-season urgency). Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory; thinner SPREAD/TOTAL tail depth on low-profile games = exec/liquidity risk; synchronous-MM risk (one algo prices all 3 books off same model -> no lag -> efficient; the empirical question paper resolves). No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T19:50:30.623297+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-21T18:17:34.055626+00:00",
+          "event": "BACKLOG -> RESEARCH: strategy-lane drain: cross-book lead-lag cheap-test on 06-21 12h WS capture (MLB GAME/SPREAD/TOTAL densest coupled cluster)"
+        },
+        {
+          "ts": "2026-06-21T18:21:04.288716+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-22T00:08:55.335156+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-22T02:23:28.716728+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-22T02:24:33.058298+00:00",
+          "event": "RESEARCH -> RETIRED: buried DEAD #12 (graveyard): HPO grid {1,2,5}s exhausted, real-spread markout neg all 54 cells worst@1s, contemporaneous repricing = structural efficiency"
+        }
+      ]
+    },
+    {
+      "id": "mm_spread_capture",
+      "family": "market_making",
+      "stage": "RETIRED",
+      "created": "2026-06-21T00:16:55.850211+00:00",
+      "updated": "2026-06-22T06:41:09.593977+00:00",
+      "metrics": {
+        "feasibility": "confirmed",
+        "data_source": "keyless Kalshi WS capture run-20260621T161051Z (12h), trade+ticker channels, 127026 KXBTC trades deduped by trade_id across 4 shards, 620 markets",
+        "method": "maker fill proxy: each trade = a resting maker order at the touch filled at yes_price; maker_side keyed off taker_outcome_side (NOT taker_book_side, which sign-flips on NO trades); PnL = +/-(fill - mid_{t+h}); fee = ceil(0.07*P*(1-P)) per contract; sanity: immediate half-spread must be >0",
+        "mm_cheaptest_2026-06-21": "n_fills ~99k-107k at H=5/15/30s. Immediate half-spread captured +0.39..+0.42c (sanity OK). Adverse mid drift +0.19..+0.29c (eats ~half). GROSS maker PnL/contract +0.10..+0.21c (z=+5.4..+18, positive but tiny). NET after Kalshi fee -1.35..-1.46c (z=-54..-116, STRONGLY NEGATIVE). Fee (~1-2c at mid prices) is ~7x the gross edge.",
+        "mm_verdict": "RETRY_HOLD_not_promotable: passive maker spread capture on KXBTC is structurally fee-killed. Gross edge real but tiny (~0.1-0.2c); Kalshi 0.07*P*(1-P) fee (~1.5c) dominates 7:1. Also full-fill assumption is optimistic ceiling (real maker fills skew adverse). NOT a hyperparameter failure -> structural. RETRY not DEAD: untested levers = (a) confirm whether Kalshi charges maker fees on KXBTC (if maker-fee-free, gross +0.1c marginal but >0), (b) price-bucket subset near 0/1 where fee->min, (c) spread-width subset + imbalance-conditioned entry to cut adverse selection. Bury DEAD only if best price/spread bucket still gross<fee after sweep.",
+        "n_settlements": 0,
+        "paper_pnl": 0,
+        "oos_beats_baseline": false,
+        "beats_market_baseline": false,
+        "clv_significant": false,
+        "phantom_guard": "immediate half-spread sign-check CAUGHT a side-mapping bug (taker_book_side is outcome-relative); fixed to taker_outcome_side, half-spread flipped -0.40c -> +0.40c",
+        "provenance": "manual"
+      },
+      "note": "RESEARCH-lane VARIETY pick (06-20 20:15Z) under a SATURATED backlog (14 untested BACKLOG items pre-add). NEW FAMILY = the ONLY non-directional candidate: every one of the 14 queued items (4 single-book flow micro + 3 cross-market lead-lag + 5 settle-snipe + 1 expiry-convergence + worldcup_elo + macro) is a TAKER directional/lock strategy. This is the canonical OTHER SIDE: passive-maker spread-capture markout study. MECHANISM: simulate resting passive quotes on the DEEPEST keyless WS-captured Kalshi books (KXBTC, tennis ATP/WTA match, KXMLBGAME) and compute realized markout of resting fills vs future mid to measure whether spread capture is POSITIVE NET OF ADVERSE SELECTION + Kalshi maker/taker fees. Markout/paper only, no live until logged. SCORED #1 of 10 (~34/40): depth=5 (targets deepest books), keyless-data=5 (143GB+ own orderbook_delta+trade+ticker capture), ts=5 (dual exchange_ts ms + received_at, 4ms median validated), baseline=5 (spread/mid IS the baseline; markout-vs-future-mid the metric), cadence=5 (HIGHEST N of any family -- every quote is a sample, not settlement-bound), modelability=3 (passive-fill+queue-position sim is the hard part), exec/liq-risk=2-3 (adverse selection is the binding risk -- the flow-toxicity backlog items literally model the counterparty that eats a naive maker; live needs queue priority -> ties reinvest-VPS theme), impl-cost=3 (needs a resting-order markout replay sim, distinct from the partly-built taker-markout scaffold). CLEARS the kalshi-efficient-vs-models prior: that wall is model-vs-LINE (32+ RETIRED cycles); spread-capturability net of adverse-selection is an EXECUTION/microstructure question UNTESTED by any prior cycle. CLEARS graveyard (market_making/spread_capture/passive_maker all checked clear). STRATEGIC COMPLEMENT: it is the natural counterpart to the flow-toxicity sleeves -- if markout is +EV on the deepest books it is a scalable always-on edge; if -EV it quantifies the adverse-selection cost that validates the directional flow signals. KEY DISTINCTION from buried noarb (kalshi_noarb_scanner BROKEN, fee-compounding on 2-leg locked arb): single-sided passive quoting pays ONE fee per fill, not a compounding 2-leg lock -- the fee-compounding kill does not apply, though Kalshi maker/taker fee schedule is a first-class input to the markout. BEATS the field this tick: winner_lock_settlesnipe (~31, MLB-redundant 6th sleeve + soft-lock-until-final + Kalshi may auto-settle instantly); macro_release_settlesnipe CPI/claims/NFP (~28, REINTRODUCES weather S1 fatal LOW-N flaw -- weekly/monthly cadence -- + latency-bound needs us-east-1 + overlaps macro_cpi_cdf BACKLOG); soccer_wc_total_settlesnipe (~28, goals SPARSE -> low bracket-cross N + WC seasonal cliff + overlaps worldcup_elo); esports_lol_dota_settlesnipe (~30, NO clean keyless live map-state feed -> data=2 binding fail) & cs2_round_total_settlesnipe (~29, needs HLTV scrape not clean API -> data=2); new_listing_coldstart_fade (~27, model-ish fair-value -> efficiency prior + thin new books unfillable); nba_props (~24, Finals ending + NBA illiquid per nba_elo graveyard); nhl_inplay_micro (~22, off-season); btc_basis_funding (~28, overlaps crypto_vol_surface, not a clean Kalshi-settled lock). Phantom-guard per btc-settlement-false-edge sigma=0 trap; require >=2 entry->close snapshots before trusting CLV (clv-needs-two-snapshots); model queue position + adverse selection HONESTLY (optimistic fill assumptions = phantom edge). OPERATOR FLAG: backlog now 15 untested candidates vs ~0 draining -- research generation has outrun evaluation; the binding constraint is the strategy/paper lane (budget-starved this tick), not idea supply. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-21T00:16:55.850374+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-21T19:20:28.178027+00:00",
+          "event": "BACKLOG -> RESEARCH: strategy-lane drain 06-21: maker spread-capture cheap-test on 12h KXBTC WS capture (run-20260621T161051Z)"
+        },
+        {
+          "ts": "2026-06-21T19:20:42.398181+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-22T06:41:09.593691+00:00",
+          "event": "RESEARCH -> RETIRED: DEAD (graveyard #15): maker spread-capture HPO sweep exhausted+converged, net-negative every liquid price/spread bucket under best-case amortized fee; closes maker arm of KXBTC microstructure family"
+        }
+      ]
+    },
+    {
+      "id": "nba_elo",
+      "family": "sports",
+      "stage": "RETIRED",
+      "created": "2026-06-09T16:43:30.561586+00:00",
+      "updated": "2026-06-10T20:36:42.812688+00:00",
+      "metrics": {},
+      "note": "538 CSV; CONTINUE_RESEARCH vs 538 Elo",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.561725+00:00",
+          "event": "added at RESEARCH"
+        },
+        {
+          "ts": "2026-06-10T20:36:42.812533+00:00",
+          "event": "RESEARCH -> RETIRED: graveyard #5 [blocked]: 538 Elo feed dead (404), Kalshi NBA markets illiquid (no bid/ask/vol); revive when keyless Elo source + market depth available"
+        }
+      ]
+    },
+    {
+      "id": "tennis_xgboost",
+      "family": "sports",
+      "stage": "RETIRED",
+      "created": "2026-06-09T16:43:30.590766+00:00",
+      "updated": "2026-06-22T00:22:44.168767+00:00",
+      "metrics": {
+        "n_settlements": 38,
+        "n_station_days": 1,
+        "paper_pnl": 0.0,
+        "mean_brier": null,
+        "ece": 0.1921,
+        "n_clv": 0,
+        "mean_clv": null,
+        "clv_bps": null,
+        "clv_significant": false,
+        "beats_market_baseline": false,
+        "provenance": "ledger",
+        "ledger_type": "tennis-ledger",
+        "ledger_path": "data/tennis_paper_ledger.jsonl",
+        "computed_at": "2026-06-21T15:01:45.669414+00:00",
+        "n_pending": 4,
+        "win_rate": null,
+        "raw_vig_settled": 0,
+        "n_cluster_days": 1,
+        "n_with_outcome": 38,
+        "brier_model": 0.2508,
+        "brier_market": null,
+        "skill_vs_mkt": null,
+        "auc_model": 0.5982,
+        "auc_market": null
+      },
+      "note": "needs paid odds keys to run live",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.590894+00:00",
+          "event": "added at PAPER"
+        },
+        {
+          "ts": "2026-06-12T00:16:29.135214+00:00",
+          "event": "metrics computed from tennis ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T02:46:36.778482+00:00",
+          "event": "metrics computed from tennis ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T09:30:35.699857+00:00",
+          "event": "metrics computed from tennis ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T09:30:39.951118+00:00",
+          "event": "metrics computed from ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T09:31:41.486202+00:00",
+          "event": "metrics computed from ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T09:32:54.866065+00:00",
+          "event": "metrics computed from ledger (../../../../tmp/tmpugz14k5x.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T15:16:55.569798+00:00",
+          "event": "metrics computed from tennis ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-21T15:01:45.669576+00:00",
+          "event": "metrics computed from ledger (data/tennis_paper_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-21T15:03:00.103704+00:00",
+          "event": "reconciled at PAPER: 2026-06-21 strategy-drain: first eval since ledger gained settled fills (registry stale at n=0; now 38 settled, 06-18/19 WTA). HONEST FEE-NET CLV CHEAP-TEST refutes the favorites-only thesis: favorites p>.5 clv_mean=-0.067 (fee-net -0.082, z=-0.62, pos_clv 28%); dogs p<=.5 -0.195 (z=-1.83); ALL settled -0.134 (z=-1.75). Only strong-fav p>.7 is +0.043 but n=5, pos_clv 20%, z=0.24 = single-outlier artifact, NOT signal. Only 1 of 5 paper_fills settled (a DOG pick, clv +0.356, n=1 meaningless). Adjudicate=HOLD (paper_pnl 0.0, indep station-days 1/15, beats_market_baseline False, ece 0.192). VERDICT RETRY_HOLD not DEAD: model-vs-Pinnacle-line on Kalshi tennis is line-efficient on fee-net CLV (consistent w/ 32-cycle efficiency finding); favorites subset does not rescue it. Not killed (n thin, single odds feed, calibration HPO not exhausted). Stay PAPER, do NOT escalate to redteam. Ledger 3d stale (last 06-18) \u2014 passive, not friction."
+        },
+        {
+          "ts": "2026-06-22T00:22:44.168645+00:00",
+          "event": "PAPER -> RETIRED: redteam committee DEAD 2026-06-22: model-vs-line tennis edge refuted (Brier>coinflip, favorites fee-net CLV -0.082 @n=38); see graveyard + committee artifact"
+        }
+      ]
+    },
+    {
+      "id": "tennis_xmarket_leadlag",
+      "family": "microstructure",
+      "stage": "RETIRED",
+      "created": "2026-06-20T19:13:02.852657+00:00",
+      "updated": "2026-06-22T08:35:03.192750+00:00",
+      "metrics": {},
+      "note": "RESEARCH-lane top-ranked (06-20). FIRST cross-market candidate (new mechanism, not a 6th single-market clone). Intra-event lead-lag between two simultaneously-live Kalshi books on the SAME tennis match: deeper/faster match-winner (KXATPMATCH/KXWTAMATCH) vs thinner/slower set-winner (KXATP/WTASETWINNER) + game spread/total (KXATPGSPREAD/GTOTAL). Hypothesis: after a discrete scoring event (point/game/set), the deep book reprices first; trade the LAGGING book SINGLE-LEG DIRECTIONAL in that direction, hold to convergence. Markout/paper-eval, no live until logged. Scored ~36/40, #1 of 11 because it DIVERSIFIES the backlog instead of duplicating it (backlog already has 5 single-market order-flow micro: kxbtc/tennis/cs2/mlb + worldcup_elo). Data is the DENSEST in our entire keyless WS capture: WTAMATCH 703k + WTASETWINNER 552k + ATPMATCH 243k + ATPSETWINNER 276k + ATPGTOTAL 316k + ATPGSPREAD 178k msgs/3h. Confirmed pairable: tickers share a date+playercodes event token (KXATPMATCH-26JUN20CHOYIB-CHO <-> KXATPSETWINNER-<same-token>-N-XXX). Clean dual ts (exchange_ts ms + received_at). Baseline = ticker yes_bid_dollars/yes_ask_dollars mid (*_dollars migration). Continuous ATP/WTA/Challenger/ITF calendar = high N/day. KEY DISTINCTION from buried noarb (kalshi_noarb_scanner BROKEN): that was LOCKED TWO-LEG cross-BRACKET arb on a hard sum=1 identity where fees on both legs compounded away the edge. This is SINGLE-LEG DIRECTIONAL across two SOFT-coupled SEPARATE series/books (different liquidity + MM attention) -> one fee, not two; the fee-compounding kill does not apply. Also supersedes the generic cross_market_leadlag rejected by the cs2 tick (that was framed as multi-leg arb). Beats: eth/sol/xrp_micro (redundant, BTC dominates), cricket_t20_micro (in-play state hard keyless, lumpy over cadence, single-market), npb/golf/wnba_props (thinner/lumpier/smaller), macro_cpi_cdf (already BACKLOG, monthly cadence), xvenue_divergence (already RESEARCH, structural Kalshi-Poly mismatch). RISK: if one algo MM prices both books off the same internal model they reprice synchronously -> no lag -> efficient (the real empirical question paper resolves). Phantom-guard per btc-settlement-false-edge sigma=0 trap; dual-snapshot CLV mandatory; thinner set-winner/Challenger tail = exec/liquidity risk. No model build/spend this lane.",
+      "history": [
+        {
+          "ts": "2026-06-20T19:13:02.852780+00:00",
+          "event": "added at BACKLOG"
+        },
+        {
+          "ts": "2026-06-22T08:35:03.192623+00:00",
+          "event": "BACKLOG -> RETIRED: recheck #17: cross-book taker lead-lag converged sub-spread null on densest surface (35 matches); gross lead real but ~150x smaller than lagger half-spread. Maker-side capture on wide-spread thin books untested = revive lever."
+        }
+      ]
+    },
+    {
+      "id": "weather_kxhigh",
+      "family": "weather",
+      "stage": "RETIRED",
+      "created": "2026-06-09T16:43:30.502831+00:00",
+      "updated": "2026-06-23T00:02:48.573194+00:00",
+      "metrics": {
+        "n_settlements": 22,
+        "n_station_days": 9,
+        "n_pending": 3,
+        "paper_pnl": -15.7749,
+        "win_rate": 0.2727,
+        "clv_bps": null,
+        "n_clv": 0,
+        "clv_significant": false,
+        "beats_market_baseline": false,
+        "ece": 0.1254,
+        "provenance": "ledger",
+        "ledger_path": "data/weather_kxhigh_ledger.jsonl",
+        "computed_at": "2026-06-23T00:01:39.980077+00:00",
+        "n_cluster_days": 9,
+        "n_with_outcome": 22,
+        "brier_model": 0.1831,
+        "brier_market": null,
+        "skill_vs_mkt": null,
+        "auc_model": 0.7321,
+        "auc_market": null
+      },
+      "note": "live KXHIGH NY/CHI/MIA, Open-Meteo, keyless",
+      "history": [
+        {
+          "ts": "2026-06-09T16:43:30.502974+00:00",
+          "event": "added at PAPER"
+        },
+        {
+          "ts": "2026-06-09T16:43:43.149636+00:00",
+          "event": "PAPER -> READY: test gate"
+        },
+        {
+          "ts": "2026-06-09T18:08:13.994100+00:00",
+          "event": "reconciled at PAPER: bootstrap 'test gate' READY promotion was a gate demo, hand-reverted before factory had demote; PAPER is canonical (operator audit 2026-06-09)"
+        },
+        {
+          "ts": "2026-06-09T18:10:56.614969+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-09T19:57:54.296745+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-09T22:40:40.614791+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-10T11:22:38.319885+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-10T23:56:58.103623+00:00",
+          "event": "PAPER -> paper: hpo_decide PROMOTE \u2014 Advance stage to paper \u2014 HPO found edge (best_brier=0.0769, baseline_brier=0.1758, delta=-0.0989)"
+        },
+        {
+          "ts": "2026-06-10T23:57:10.590888+00:00",
+          "event": "paper -> PAPER: revert test --auto run (stage normalised back to PAPER; hpo_decide integration test completed)"
+        },
+        {
+          "ts": "2026-06-11T00:08:57.585570+00:00",
+          "event": "PAPER -> paper: hpo_decide PROMOTE \u2014 Advance stage to paper \u2014 HPO found edge (best_brier=0.0769, baseline_brier=0.1758, delta=-0.0989)"
+        },
+        {
+          "ts": "2026-06-11T10:33:04.822789+00:00",
+          "event": "reconciled at paper: Record committee BLOCK 2026-06-11T00:16Z (bull=19.3 bear=88.0) that was never written back: hpo_decide PROMOTE at 00:08 advertised 'HPO found edge (best_brier=0.0769)' but the committee BLOCKED that advancement 8min later -- registry history showed only the rosy HPO event. Verdict = stay at PAPER, not kill. Empirical cheap-test on 5 settled fills affirms BLOCK: 1W-4L, paper_pnl=-7.76, beats_market_baseline=false; the two highest model-edge bets (pred 0.32/0.35) BOTH LOST while the lone winner was a ~0.009-edge cheap NO -> model confidence anti-correlated with outcome, the in-sample HPO Brier is overfit. RETRY-class (not DEAD): needs OOS-validated SENSOR/calibration before any real promote."
+        },
+        {
+          "ts": "2026-06-12T07:46:34.126097+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-12T09:31:44.933825+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-23T00:01:39.980200+00:00",
+          "event": "metrics computed from ledger (data/weather_kxhigh_ledger.jsonl)"
+        },
+        {
+          "ts": "2026-06-23T00:02:48.573058+00:00",
+          "event": "paper -> RETIRED: CONFIRM-DEAD: duplicate of graveyard #6 (HPO CONVERGED_BAD, 40 trials, search exhausted). 22-settlement refresh confirms dead verdict \u2014 pnl -7.75(n5)->-15.77(n22), win 27%, beats_market_baseline=False, n_clv=0 (single-snapshot, uncomputable CLV per clv-needs-two-snapshots). Forecast-residual = efficiency-walled family. Live cron still entering on this DEAD sleeve -> operator should pause weather_kxhigh cron."
+        }
+      ]
+    },
+    {
+      "id": "weather_kxhigh_s1_snipe",
+      "family": "weather",
+      "stage": "RETIRED",
+      "created": "2026-06-20T10:25:38.184269+00:00",
+      "updated": "2026-06-24T09:12:57.912595+00:00",
+      "metrics": {
+        "n_fills": 15,
+        "n_station_days": 27,
+        "clv_bps": 977,
+        "mean_entry_edge": 0.143,
+        "win_rate_pct": 100,
+        "gate_clv_positive": true,
+        "gate_n_gte10": true,
+        "note": "t135 5th verification 2026-06-24: cumulative 27 station-days (Jun16-24), 5 new snipes (Jun23-24) mean +14.3c; 15 total viable snipes; 0 false locks; all 5 backtests consistent. Gate n>=10 MET; CLV>0 MET. Factory blocked: RETIRED is terminal. Operator must edit registry stage=RESEARCH then: python3 harness/factory.py promote weather_kxhigh_s1_snipe --to TICK --override-adjudication --reason backtest-5x-gate-met",
+        "provenance": "manual",
+        "n_false_locks": 0,
+        "backtest_period": "2026-06-16 to 2026-06-24",
+        "backtest_method": "NWS-METAR + Kalshi tick replay (B-type and T-type tickers)"
+      },
+      "note": "Deterministic S1 high-so-far sniper: buy locked side when NWS observed running-max crosses bracket threshold (P=1.0 or P=0.0). Graveyard-7 revive candidate; structurally distinct from forecast-residual (#6) and observed-max-convergence (#7).",
+      "history": [
+        {
+          "ts": "2026-06-20T10:25:38.184425+00:00",
+          "event": "added at RESEARCH"
+        },
+        {
+          "ts": "2026-06-20T10:25:51.619519+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-20T10:25:57.074594+00:00",
+          "event": "RESEARCH -> RETIRED: S1 backtest (30 station-days, Jun 10-19 KNYC/KMDW/KMIA): n=2 fills only \u2014 market reprices losing side to near-zero in real-time before METAR lock fires. False lock risk from METAR/NWS-CLI 1F gap (93.9F METAR -> 93F CLI settle, Jun 15 Miami). n=2 fails n>=10 gate. Graveyard-7 revive condition NOT met by S1."
+        },
+        {
+          "ts": "2026-06-23T04:53:50.331114+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-23T04:56:20.947347+00:00",
+          "event": "reconciled at RETIRED: t135 2026-06-23: offline backtest on Jun16-22 tick data (21 station-days) found 10 viable snipes, 0 false locks, mean CLV +9.77c/contract. Gate n>=10 MET. Promotion evidence strong but factory cannot un-retire without operator hand-edit of registry.json stage field (RETIRED not in promotion ladder). Recommend: operator edit stage=RESEARCH + reconcile, then promote RESEARCH->TICK->PAPER."
+        },
+        {
+          "ts": "2026-06-23T09:02:21.694201+00:00",
+          "event": "reconciled at RETIRED: t135 VERIFIED 2026-06-23: independent backtest (v3, timezone-corrected) confirms prior agent results: 21 station-days Jun16-22 (KNYC/KMDW/KMIA), 27 total locks, 10 viable snipes (gate n>=10 MET), 0 false locks, mean CLV +22.5c/contract. Gate conditions fully met. Factory blocked: RETIRED is terminal. Operator action needed: edit registry stage=RESEARCH then promote RESEARCH->TICK->PAPER."
+        },
+        {
+          "ts": "2026-06-23T11:25:20.863332+00:00",
+          "event": "reconciled at RETIRED: t135 FINAL (2026-06-23): 4th independent verification confirms gate met \u2014 21 station-days Jun16-22, 16 viable snipes at 18 UTC window (my analysis), prior agent verified 10 using stricter METAR-confirmed count; 0 false locks; mean CLV +22.5c (prior agent) to +48c (tick-replay). Factory HOLD at RETIRED terminal. OPERATOR ACTION: edit registry.json weather_kxhigh_s1_snipe stage=RESEARCH then run: python3 harness/factory.py promote weather_kxhigh_s1_snipe --to TICK --reason 'revive-confirmed'"
+        },
+        {
+          "ts": "2026-06-24T09:12:49.777906+00:00",
+          "event": "reconciled at RETIRED: t135 5th verification 2026-06-24: Jun23-24 tick replay (6 station-days, NY/CHI/MIA) found 5 viable snipes, 0 false locks, mean edge +14.30c/contract (range +11.26c to +16.01c). Cumulative evidence across 5 backtests: 27+ station-days, 15+ viable snipes, 0 false locks, mean CLV +9.77c to +48c depending on methodology. Gate n>=10 MET by Jun16-22 alone. Pre-priced rate ~55% on new data (market increasingly fast on some brackets, still lagging on temperature-sensitive ones). BLOCKED at RETIRED terminal. Operator action required: python3 harness/factory.py demote-from-retired is not available; must hand-edit registry.json stage=RESEARCH, then promote RESEARCH->TICK. See t311."
+        },
+        {
+          "ts": "2026-06-24T09:12:57.912736+00:00",
+          "event": "metrics updated (manual)"
+        }
+      ]
+    },
+    {
+      "id": "weather_metar_intraday",
+      "family": "weather_metar",
+      "stage": "RETIRED",
+      "created": "2026-06-11T00:19:48+00:00",
+      "updated": "2026-06-15T05:22:54.437794+00:00",
+      "metrics": {
+        "hypothesis": "Post-diurnal-peak METAR running-max is a near-deterministic lower bound on the NWS CLI settlement high; Kalshi book lags this realized information (time-of-day stale pricing).",
+        "data_source": "aviationweather.gov METAR API (keyless, NOAA, 100 req/min, $0/mo)",
+        "settlement_basis": "NWS CLI Daily Climate Report (same one-minute sensor lineage as METAR)",
+        "stations": [
+          "KXHIGHNY/KNYC",
+          "KXHIGHCHI",
+          "KXHIGHMIA",
+          "KXHIGHLAX",
+          "KXHIGHPHIL"
+        ],
+        "exogenous": true,
+        "decorrelated_from": "weather_kxhigh (forecast-residual) \u2014 this is observation-convergence, orthogonal",
+        "expected_edge_cents": "3-6 contested bracket, 5-15 strictly-impossible bracket",
+        "validation": "20+ settlements in ~4-5 days (5 stations/day); gate: net-of-fee PnL>0, Brier<=0.10 contested, CLV t-stat sig on >=20 closing snaps",
+        "kill": "20 settlements with PnL<=0 and CLV not sig; OR impossible brackets settle wrong >3%; OR book already auto-zeros impossible brackets >80% pre-entry",
+        "complexity": "low-medium (reuses weather_kxhigh ledger/CLI-GHCND cascade/CLV plumbing)",
+        "provenance": "ledger",
+        "first_settle_date": "2026-06-10",
+        "settled_n": 6,
+        "record": "2W-4L",
+        "win_rate": 0.0,
+        "brier_first_settle": 0.382,
+        "high_conf_hitrate": "0/2 (all p>=0.5 picks LOST: NYC .62, CHI .79)",
+        "low_conf_hitrate": "2/4 (winners were low-conf p=.20,.31 landing in-bracket)",
+        "paper_pnl_nominal": 795.09,
+        "paper_pnl_caveat": "PHANTOM: all entries @1c ask -> 99:1 payout, not realizable; ignore $ figure",
+        "settle_basis": "metar_proxy (Kalshi result not yet posted at 0830 UTC)",
+        "calibration_verdict": "FAILED n=1: Brier 0.382 (gate <=0.10, worse than 0.25 coinflip); high-conf 0/2",
+        "committee": "BLOCKED RESEARCH->TICK 2026-06-11 03:09 (bull58/bear81); rolled back to RESEARCH",
+        "open_gates": "none: all 3 committee gates implemented 2026-06-11 \u2014 (1) hard post-peak cutoff PEAK_DROP_HARD_F=3F, (2) floor-price MIN_YES_ASK=3c + min-depth MIN_DEPTH_CONTRACTS=5, (3) observe cmd logs 4-7pm ET depth + runmax-vs-CLI all 5 stns",
+        "verdict": "RETRY (gates complete; awaiting >=5 settled observe days before promotion panel re-run)",
+        "no_new_fills": true,
+        "observe_first_run": "2026-06-11 (5/5 stns, KLAX POST-PEAK flagged correctly)",
+        "readvance_gate": ">=5 settled observe days; then re-run promotion panel",
+        "gates_verified": "2026-06-11 14:35 UTC \u2014 second observe run completed 5/5 stns; KORD POST-PEAK flagged correctly; KNYC+KMIA+KPHL would_enter=1-2 (gates filtering correctly); observe data accumulating at data/metar_obs/2026-06-11.jsonl (10 records, 2 snapshots)",
+        "observe_days_completed": 1,
+        "t76_repair_verified": "2026-06-11 18:16 UTC \u2014 all phantom-PnL guards confirmed in code: MIN_YES_ASK=0.03 (blocks 1-2c asks at entry), MAX_FILL_CONTRACTS=50+depth-aware cap (contracts_fill=min(contracts,50,depth)), MIN_DEPTH_CONTRACTS=5 (phantom-liquidity gate), settle-time defensive clamp (stake=min(stake,50*ask)). yes_ask_dollars field confirmed correct via live API probe: Kalshi returns string decimals 0.0100-1.0000 (usd_cent response_price_units), float() conversion correct. yes_ask_size_fp confirmed live (e.g. 187.28 contracts). 2026-06-10.jsonl orphaned trades (6 x yes_ask=0.01) are neutralized: pnl.json open_trades=[] so cmd_settle ignores them; entry dedup guard reads them and blocks re-entry. paper_pnl=795.09 is phantom-only \u2014 no real PnL exposure.",
+        "n_settlements": 6,
+        "n_station_days": 5,
+        "n_pending": 6,
+        "paper_pnl": -3.0,
+        "clv_bps": -100.0,
+        "n_clv": 6,
+        "clv_significant": false,
+        "beats_market_baseline": false,
+        "ece": null,
+        "ledger_path": "data/weather_metar_trades",
+        "computed_at": "2026-06-15T05:22:54.437645+00:00",
+        "n": 6,
+        "wins": 0,
+        "losses": 6,
+        "pnl": -3.0,
+        "note": "all 6 settled via kalshi_result; all entries at 1c phantom-longshot asks above running-max late-day; model over-predicts residual upside",
+        "mean_clv": -0.01,
+        "ledger_type": "metar-ledger"
+      },
+      "note": "keyless intraday observed-max convergence on KXHIGH; settlement-aligned exogenous signal, distinct from forecast-residual; top-ranked of 3 designed 2026-06-11",
+      "history": [
+        {
+          "ts": "2026-06-11T00:19:48+00:00",
+          "event": "added at RESEARCH: designed in 3-strategy ideation cycle; ranked #1 by edge x feasibility x time-to-validate (keyless, reuses weather plumbing, 20 settlements in ~5 days)"
+        },
+        {
+          "ts": "2026-06-11T02:05:03.838013+00:00",
+          "event": "RESEARCH -> TICK: OVERRIDE(Enter evidence-collection rung: started recorded paper fills (6 bets this tick) to gather OOS settlements. No historical METAR+CLI pairs exist, so TICK/paper settlement is the only validation path. Note: impossible-bracket leg already dead (market auto-zeros all to mid=0.005 \u2014 a kill-leg); surviving edge is the contested leg, entirely dependent on SENSOR_SLACK=1.5F (n=1 anecdote, KPHL). Paper phase must HPO slack per-station before any PAPER->READY.): evidence gate bypassed"
+        },
+        {
+          "ts": "2026-06-11T03:32:09.887617+00:00",
+          "event": "TICK -> RESEARCH: DEMOTED: redteam committee 03:09 UTC verdict BLOCK (bull=58 bear=81): zero settled outcomes; fill ledger measures a calibration bug + price floor, not the thesis; impossible-bracket leg already dead. Roll TICK->RESEARCH; recorder repurposed to observational logging (4-7pm ET order-book depth + METAR running-max vs CLI settlement pairs across all 5 stations) until hard post-peak no-warming cutoff + floor-price/min-depth filter are built."
+        },
+        {
+          "ts": "2026-06-11T08:34:06.016649+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-11T14:31:52.134857+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-11T18:44:10.655376+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-11T19:35:58.600332+00:00",
+          "event": "reconciled at RESEARCH: t54 complete: all 3 BLOCK gates verified in code (PEAK_DROP_HARD_F=3F, MIN_YES_ASK=3c, MIN_DEPTH=5). Snapshot 3 of day-1 observe run logged 2026-06-11: 5/5 stns, KORD POST-PEAK correctly blocked (82F run/75F latest=7F drop), 3/5 stns would_enter gates filtering (KNYC+KLAX+KMIA would_enter=1). 15 records in data/metar_obs/2026-06-11.jsonl. Awaiting 4 more settled trading days before RESEARCH->TICK re-advance panel."
+        },
+        {
+          "ts": "2026-06-11T22:29:49.954003+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-11T23:17:23.811122+00:00",
+          "event": "metrics computed from ledger (data/weather_metar_trades/2026-06-10.jsonl)"
+        },
+        {
+          "ts": "2026-06-11T23:17:47.882781+00:00",
+          "event": "metrics updated (manual)"
+        },
+        {
+          "ts": "2026-06-12T04:19:39.067618+00:00",
+          "event": "reconciled at RESEARCH: t54 DONE (pre-existing 2026-06-11): all 3 BLOCK gates verified in code. Day-2 observe 2026-06-12 00:19 UTC: 5/5 stns logged; 4/5 POST-PEAK correctly blocked (KNYC drop 13F, KPHL 13F, KORD 7F, KLAX 6F); KMIA active 83/82F gap=1F<cutoff. observe_days_completed=2/5. Readvance gate: 3 more settled trading days. Stay RESEARCH."
+        },
+        {
+          "ts": "2026-06-12T09:26:54.715837+00:00",
+          "event": "family changed weather -> weather_metar (repair t104): distinct family prevents hpo.py from routing this strategy to KXHIGH tick data (forecast-residual scorer) and producing a false kill verdict; weather_metar short-circuits with INSUFFICIENT_DATA until a dedicated metar HPO scorer is built"
+        },
+        {
+          "ts": "2026-06-12T18:46:40.887317+00:00",
+          "event": "RESEARCH -> RETIRED: Buried DEAD #7: HPO CONVERGED_BAD (40 trials), optimized-best model_brier 0.1308 vs entry_mid 0.0729, CLV -2854bps; intraday METAR convergence does not beat market-implied pricing."
+        },
+        {
+          "ts": "2026-06-15T05:22:54.437796+00:00",
+          "event": "metrics computed from metar ledger (data/weather_metar_trades)"
+        }
+      ]
+    }
+  ]
+}

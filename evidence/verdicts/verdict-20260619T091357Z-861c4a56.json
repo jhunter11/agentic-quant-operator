@@ -1,0 +1,9 @@
+{
+  "ts": "2026-06-19T09:13:57.577847+00:00",
+  "strategy": "microstructure_validation",
+  "brief": "PIVOT: Formally retire model-vs-line as the primary Kalshi edge thesis. Evidence: 44 cycles, $0 revenue, every model-vs-line sleeve efficient or KILLED (MLB game-winner AUC 0.548 zero OOS skill; MLB kprop skill_vs_market v0 -0.0045 / v2 -0.0341, gate wants P>0.975; worldcup_elo committee-BLOCKED phantom edge; tennis/weather/soccer/noarb all efficient or killed). Pivot to a disciplined, pre-registered, phantom-guarded live-microstructure paper-validation track on the now-fixed sub-second WS capture (37s->21ms via free consumer-side rewrite; no VPS/FIX capital needed). Keep all settlers running so open paper positions resolve; stop generating new model-vs-line candidates; no live orders; $0 spend. Phantom-guard explicitly against the btc-settlement degenerate-variance trap (model_sigma=0 -> net_edge=0.999).",
+  "brief_sha256": "861c4a56754345d9873b38019fa46983016ec334eb38f6c32d218ddeebcd13d1",
+  "verdict": "BLOCKED",
+  "verdict_line": "VERDICT: BLOCKED \u2014 review unparseable",
+  "rationale_tail": "There's an issue with the selected model (claude-fable-5). It may not exist or you may not have access to it. Run --model to pick a different model.\n"
+}

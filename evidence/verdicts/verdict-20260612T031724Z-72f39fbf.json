@@ -1,0 +1,9 @@
+{
+  "ts": "2026-06-12T03:17:24.054880+00:00",
+  "strategy": null,
+  "brief": "Live system smoke test: place a 1-contract YES order on a small Kalshi market (max loss ~-2) to verify end-to-end order plumbing before MLB live deploy. Keys are wired, spend.py approved , kill-switch clear. Purpose is plumbing verification only \u2014 not edge-driven.",
+  "brief_sha256": "72f39fbfc94a9f872a858475aabd7531127179892a796ad1928ad9bde598a56d",
+  "verdict": "BLOCKED",
+  "verdict_line": "VERDICT: BLOCKED \u2014 frozen control-plane drift unresolved (check.py FAIL persists) and sandbox cap raised $7\u2192$10 via backdated in-place edit of operator funding history",
+  "rationale_tail": "ol plane this is an easy PROCEED. But the control plane is not clean: the safety verifier is in unexplained drift (its last run is a safety FAIL), the freeze baseline was re-stamped outside the documented procedure, and the hard cap was raised via a backdated-looking edit to operator history. Approving any live order in this state \u2014 even $2 \u2014 would establish that frozen-control-plane failures don't actually block. They must.\n\n**Path to unblock:** (1) operator explicitly confirms the $7\u2192$10 raise and records it as a *new* `funding_history` entry; (2) operator reviews the `check.py`/`factory.py`/`TOOLS.md` changes and re-runs `freeze.py`; (3) `check.py` passes with zero safety FAILs; (4) re-run this panel \u2014 expect PROCEED.\n\nVERDICT: BLOCKED \u2014 frozen control-plane drift unresolved (check.py FAIL persists) and sandbox cap raised $7\u2192$10 via backdated in-place edit of operator funding history\n"
+}

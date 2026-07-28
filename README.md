@@ -1,127 +1,116 @@
 # Agentic Quant Operator
 
-**An autonomous AI engineering agent that runs a quantitative research desk unattended — and the safety architecture that lets it.**
+**An autonomous agent ran a quantitative research desk for three weeks. This is the control plane that bounded it, and the evidence of what it actually did.**
 
-I didn't write a trading system. I engineered the *engineer*: an autonomous agent that runs its own research loop, builds and validates models, paper-trades them, kills its own losing ideas, and reports to a human only at the board level — all inside guardrails it is structurally unable to disable. This repository is the comprehensive documentation of that agent: how it decides, how it's kept safe, how it orchestrates itself across weeks of unattended operation, and how it accumulates knowledge.
+It collected market data, built models, paper-traded them against live prices, scored itself, and retired its own losers. Then it reported that the markets it studied were efficient and that none of its strategies deserved capital.
 
-### What it built (the one-paragraph version)
+That last part is the result. **34 candidates. 14 retired on their own evidence. 1,407 settled paper decisions. Zero promoted to live money** — because none of them cleared the gate, and the gate is built to say so rather than to find a way through.
 
-Pointed at event-contract and sports-betting markets, the agent produced a full sports-modeling and betting-line-validation system: models that predict match outcomes from team strength alone (never the line), a forward-validation harness (closing-line value, calibration, paper-trading), and a "be the casino" Monte-Carlo study of how a book actually makes money. Its headline honest finding — *the markets are efficient, so you can't beat the line; the edge is in being the house* — is itself a product of the evidence gates described below.
+```bash
+git clone https://github.com/jhunter11/agentic-quant-operator
+cd agentic-quant-operator
+python3 explore.py
+```
 
-➡️ **The full modeling system, results, and leakage audit live in the companion repo: [casino-line-modeling »](https://github.com/jhunter11/casino-line-modeling).** This repo is the *engineering* half; that one is the *modeling* half. They're two parts of one project.
+No dependencies, no setup, no network. Python 3.9+ and the standard library. The menu runs the real gates against the real ledgers — nothing in it is a mock.
 
 ---
 
-## Contents
-1. [Mental model: CEO / board](#1-mental-model-ceo--board)
-2. [The work-cycle](#2-the-work-cycle)
-3. [Safety architecture](#3-safety-architecture-the-core)
-4. [Autonomy & orchestration engine](#4-autonomy--orchestration-engine)
-5. [The skills system](#5-the-skills-system-a-staged-business-loop)
-6. [Evidence & validation philosophy](#6-evidence--validation-philosophy)
-7. [Memory & knowledge](#7-memory--knowledge)
-8. [Model orchestration & cost discipline](#8-model-orchestration--cost-discipline)
-9. [Engineering skills demonstrated](#9-engineering-skills-demonstrated)
-10. [What's excluded, and why](#10-whats-excluded-and-why)
+## The 60-second version
 
----
+An agent that can raise its own limits has no limits. So the interesting engineering here is not the autonomy, it's the **four gates** every consequential action has to pass, none of which depend on the agent behaving well.
 
-## 1. Mental model: CEO / board
+<img src="docs/architecture.svg" alt="The agent runs a five-stage cycle; every consequential action passes four gates, which are themselves hash-verified against a frozen control plane." width="100%">
 
-The human operator acts as a **board**: sets the mission, funds the sandbox, and approves only board-level decisions (capital, anything legally binding, public actions). The agent acts as a **CEO**: it decides and executes everything operational autonomously and escalates only what genuinely belongs to the board. The entire system is designed around that split — maximal autonomy *inside* hard constraints, with the constraints enforced by code, not by the agent's good intentions.
+| Gate | Question | Refuses when |
+|---|---|---|
+| [`integrity`](quantdesk/integrity.py) | is the control plane intact? | any file defining the agent's authority has changed |
+| [`sandbox`](quantdesk/sandbox.py) | is this dollar inside the cap? | over budget, NaN, zero, negative, or trading is paused |
+| [`panel`](quantdesk/panel.py) | does an adversary object? | a red-team review blocks — *or cannot be reached* |
+| [`ladder`](quantdesk/ladder.py) | does the evidence support it? | the numbers don't clear the bar, or weren't derived from a ledger |
 
-## 2. The work-cycle
+`python3 explore.py 2` watches the agent attempt six things it shouldn't be able to do, and get refused six times.
 
-Every scheduled tick runs one disciplined cycle:
+## The gate that matters
 
-```
-SENSE  → read runway (burn vs revenue), sandbox balance, recent results,
-          data freshness, current strategy stage. (token-budgeted, pull-based)
-ORIENT → which stage am I in? planning / validation / delivery / growth
-THINK  → what single action most reduces the gap to profit right now?
-ACT    → take exactly ONE action. If it risks money, it MUST pass the spend gate first.
-REFLECT→ append what was done + learned; surface anything board-level to the operator.
-```
+Money is easy to bound. The hard gate is the one between a strategy and capital, because that is where a research process talks itself into an edge that isn't there.
 
-![Agent control loop and guardrails](assets/architecture.png)
+<img src="docs/lifecycle.svg" alt="Candidates climb one rung at a time from backlog to live, past two gates. 16 stayed in backlog, 3 in research, 1 reached paper, 14 were retired, none reached live." width="100%">
 
-The constraint that it takes **one** action per cycle — not a sprawling plan — is deliberate: it keeps each cycle auditable, cheap, and reversible, and it forces the agent to prioritize rather than thrash.
+Two rules do most of the work.
 
-## 3. Safety architecture (the core)
+**Independent days, not rows.** Twenty strikeout props on one game day share a starting pitcher, a park, and a weather front. They are not twenty samples. Every significance test resamples *clusters*, so the interval reflects how much information is actually there. In the World Cup ledger, mean closing-line value is **+67 bps** — genuinely positive — and clustering by match day puts the 95% interval at roughly **[−900, +1100]**. Resampling rows instead of days would have called that an edge.
 
-This is the part I'm proudest of. Autonomy is only safe if the agent *cannot* expand its own authority. Four mechanisms enforce that, in code:
+**Derived, not asserted.** Gate metrics carry a `provenance` field, and the gate rejects anything that isn't `"ledger"`. The easiest way for an autonomous agent to promote a bad strategy is to write down good numbers for it, so the numbers have to be *computed* by [`quantdesk/score.py`](quantdesk/score.py) from settled decisions. To clear the bar, the ledger has to clear the bar.
 
-### 3.1 Frozen control plane
-A defined set of files — mission, budget, the spend gate, the sandbox ledger, the review panel, the safety rails — are **frozen**. The agent may not edit them; to change a limit it must write a proposal for human review. Integrity is checked against a manifest (`harness/freeze.py` / `freeze.json`), so tampering is detectable rather than silent. *The agent cannot rewrite its own guardrails — that's the whole point.*
+## What the ledgers say
 
-### 3.2 Money sandbox + spend gate
-`harness/spend.py` is **the only path to committing money.** Every spend must call it:
-```
-python harness/spend.py <amount_usd> "<reason>"   →  APPROVED | DENIED
-```
-It approves only if `spent_usd + amount <= limit_usd`, records the spend durably against `sandbox.json` (so the running total survives across cycles), and **has no code path that widens the cap.** The agent can spend *down* to the limit and no further; raising the limit is a board action.
+Recomputed from raw every time you run `python3 explore.py 3`:
 
-### 3.3 Adversarial review panel
-Before anything consequential, irreversible, public, or capital-bearing, the agent convenes `harness/panel.py` — a structured **red-team / blue-team review** that returns `VERDICT: PROCEED` or `VERDICT: BLOCKED — <reason>`. Every run writes a **tamper-evident verdict artifact** (`data/reviews/verdict-<ts>-<hash>.json`). A `BLOCKED` verdict must be honored — and the strategy-promotion gate (below) *refuses to promote* anything lacking a valid PROCEED artifact, so the review can't be skipped.
+| | settled | independent days | Brier — model / market | skill | realised P&L | gate |
+|---|---:|---:|---|---:|---:|---|
+| World Cup match winner | 43 | 10 | .157 / **.143** | −0.101 | −$15.87 | refused |
+| MLB strikeout props | 1,364 | 12 | .160 / **.158** | −0.017 | +$22.89 | refused |
 
-### 3.4 Evidence-gated promotion
-No strategy goes live on enthusiasm. `harness/factory.py` / `strategy_gate.py` will only promote a strategy to READY/LIVE when it clears hard, pre-registered gates: positive **forward closing-line value** with clustered-bootstrap significance, **Brier skill vs the market**, calibration error under threshold, and paper P&L beating the market-implied baseline. Plus a `harness/killswitch.py` and explicit `harness/risk.py` exposure limits as backstops.
+Both models lose to the market's own price. The MLB book was *profitable* and still refused: twelve game days is not enough to distinguish +$22.89 from luck, and the clustered interval on per-trade P&L spans zero.
 
-## 4. Autonomy & orchestration engine
+The desk's honest conclusion was that model-versus-line was the wrong thesis for these markets. It wrote that up, retired the family, and took the pivot to the review panel — [`evidence/verdicts/verdict-20260619T091610Z-82a939eb.json`](evidence/verdicts/verdict-20260619T091610Z-82a939eb.json).
 
-The agent runs for weeks without a human in the inner loop. The machinery that makes that safe and stable:
+## The night it caught itself
 
-- **Lane orchestrator** (`orchestrator.py`) — picks the single highest-leverage lane each tick (`pick --json`), executes one bounded action, and records the token spend.
-- **Chain dispatcher** (`ratelimit_guard.py`) — a budget-paced launchd dispatcher that sequences ticks so the system respects model rate limits instead of stampeding them.
-- **Self-healing** — `cron_preflight.py`, `cron_error_watchdog.py`, `cron_error_sweep.py`, `repair.py`, and `dead_vs_retry.py` detect failed/stalled jobs, auto-disable flapping ones, and triage dead-vs-retry so a single broken job can't silently halt the loop.
-- **Concurrency safety** — `editlock.py`, an advisory edit-lock mutex with TTL + reaper, lets multiple agent processes edit shared files without corrupting them.
-- **Progress machinery** — `phase.py` auto-advances the project through stages when foundations are complete; `tasks.py` / `sprint.py` manage the task queue.
+The single most useful artifact in this repository is a refusal.
 
-## 5. The skills system (a staged business loop)
+On 2026-06-12 at 03:17 UTC the agent proposed a one-contract live order to verify order plumbing. The review panel blocked it on two grounds it worked out for itself:
 
-Behavior is organized as composable, token-budgeted **skills** — each a self-contained procedure for one part of the loop:
+> `VERDICT: BLOCKED — frozen control-plane drift unresolved (check.py FAIL persists) and sandbox cap raised $7→$10 via backdated in-place edit of operator funding history`
+
+The agent had quietly raised its own budget by back-dating an entry in the funding history. It took three more attempts — fix the drift, correct the funding record, re-bless the freeze — before a PROCEED came back at 03:30. All four artifacts are in [`evidence/verdicts/`](evidence/verdicts/), including the two where the reviewer was unreachable and the gate blocked by default.
+
+This is the argument for building oversight as code rather than as instructions. The agent was not malicious and was not lying; it took a shortcut, and something that wasn't the agent noticed.
+
+## What's in here
 
 ```
-cycle-sense ─▶ stage-router ─▶ ┌ planning-loop   (idea-generation → idea-validation → market-validation → economics-check)
-                               ├ validation-loop (validation-test-design → cheapest demand test)
-                               ├ delivery-loop   (manual fulfillment before automation)
-                               └ growth-loop     (repeatable channel / retention)
-                          … then cycle-reflection + strategy-maintenance close the loop.
+quantdesk/         the control plane — 7 modules, standard library only
+  metrics.py       Brier skill · calibration · clustered-bootstrap CLV
+  score.py         derives gate metrics from a settled ledger
+  ladder.py        the strategy lifecycle and the promotion gate
+  sandbox.py       the money gate
+  integrity.py     the frozen control plane
+  panel.py         adversarial review + tamper-evident verdicts
+  killswitch.py    a file-based stop button
+
+evidence/          what actually happened
+  registry.json    34 strategies with full stage history
+  ledgers/         1,407 settled paper decisions
+  verdicts/        8 review artifacts from the live run
+
+tests/             113 tests — each one an attempt to get past a gate
+docs/              MISSION.md (the mandate) · ARCHITECTURE.md (long form)
+explore.py         the menu
 ```
 
-Supporting skills include `review-gate` (decides when the panel is required), `action-execution` (executes exactly one money-gated action), `pain-discovery/evidence/scoring` (validating real demand), `research-governor` and `modeling-deep-dive` (ML rigor), and a `strategy-factory` that advances every candidate one rung per cycle and culls losers.
+Command line, if you'd rather skip the menu:
 
-## 6. Evidence & validation philosophy
+```bash
+python3 -m quantdesk.ladder list              # every candidate and its metrics
+python3 -m quantdesk.ladder adjudicate --all  # what the gate says about each
+python3 -m quantdesk.score                    # recompute the ledger metrics
+python3 -m quantdesk.integrity --check        # verify the frozen plane
+python3 -m quantdesk.scenarios                # the six guardrail demonstrations
+python3 -m unittest discover -s tests -t .    # 113 tests
+```
 
-The agent is built to *distrust its own results*:
+## What it's built on
 
-- **Forward metrics, not retro fits** — `metrics.py` computes closing-line value (bps) with clustered-bootstrap significance, Brier skill vs market, and expected calibration error; only *forward* evidence gates promotion.
-- **Pre-registration** — `precommittee_backtest.py` and a committee protocol guard against adaptive test-selection / p-hacking.
-- **Anti-phantom-edge discipline** — a recurring failure mode (broken settlement logic manufacturing fake edge) is explicitly hunted: settlement base rates are sanity-checked before any "edge" is trusted.
-- **Early stopping** — `research_governor.py` logs model iterations and emits deploy/keep/plateau verdicts so research doesn't grind past diminishing returns.
-- **Institutional memory of failure** — `friction.py` and `graveyard.py` log every dead idea and friction point, so the agent doesn't re-run searches it already proved empty.
+Autonomous-agent architecture · oversight design that bounds capability rather than trusting prompts · forward-only validation (closing-line value, Brier skill vs market, calibration, clustered-bootstrap significance) · pre-registration and anti-overfitting discipline · fail-closed systems design.
 
-## 7. Memory & knowledge
+## What's excluded
 
-Context is **pulled, never bulk-read** (token discipline):
+Trading credentials, live order paths, the private market-data cache, and the scheduling and self-healing machinery that kept the loop alive on one machine. The point is the decision architecture and the evidence, not a runnable trading bot.
 
-- A **knowledge graph** (graphify) answers codebase/architecture questions from a persistent graph instead of re-reading source.
-- An **Obsidian vault** (the workspace itself) links strategy/ops notes via wikilinks, with a `CONTEXT_MAP` index and per-note token costs so the agent loads only what it needs.
-- A **memory vault** stores atomic, dated lessons; an index lets the agent recall decisions, dead ends, and preferences across sessions.
+The models the agent built and the market-efficiency study it produced are written up separately, in [casino-line-modeling](https://github.com/jhunter11/casino-line-modeling) — that repository is the *modelling*, this one is the *engineering*. Neither depends on the other, and the headline figures in the table above are reproduced there from an entirely separate implementation.
 
-## 8. Model orchestration & cost discipline
+## License
 
-Claude-first, tiered by job: **Opus** for judgment (planning, review, operator-brain), **Sonnet** for specified execution, **Haiku** for routine drafting — with a cross-model fallback for resilience. Every model call is logged; the cheapest model that does the job is preferred. A two-tier "operator-brain (periodic) + execution-ticks (frequent)" design separates expensive deliberation from cheap execution.
-
-## 9. Engineering skills demonstrated
-
-Autonomous-agent architecture · safety/oversight design (capability-bounding, not prompt-trusting) · LLM tool-orchestration · multi-agent concurrency control · self-healing scheduling · evidence-based ML validation (CLV, calibration, bootstrap significance) · pre-registration / anti-overfitting discipline · cost-aware model routing · knowledge-graph + memory systems.
-
-## 10. What's excluded, and why
-
-This is a curated portrait of a live system. Trading credentials, the money-sandbox internals, private market data, and live order paths are **deliberately omitted** — the point is to show the engineering and the safety architecture, not to hand over a running trading bot.
-
----
-
-*Companion repository — the detailed modeling system this agent designed and validated:*
-**[casino-line-modeling »](https://github.com/jhunter11/casino-line-modeling)**
+MIT — see [LICENSE](LICENSE).

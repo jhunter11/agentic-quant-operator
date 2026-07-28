@@ -1,0 +1,7 @@
+{
+  "_doc": "The money sandbox. limit_usd is an OPERATOR field: the agent may read it and may increase spent_usd through quantdesk.sandbox, but no code path in this repository widens the cap. Raising it is a human edit, and it leaves a git diff.",
+  "currency": "USD",
+  "limit_usd": 10.0,
+  "spent_usd": 0.0,
+  "ledger": []
+}

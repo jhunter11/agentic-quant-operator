@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330" role="img" aria-label="The agent runs a five-stage cycle; every consequential action passes four gates, which are themselves hash-verified against a frozen control plane.">
+  <style>
+    .t    { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; }
+    .lbl  { font-size: 13px; font-weight: 600; letter-spacing: .3px; fill: #1f2328; }
+    .cap  { font-size: 10.5px; font-weight: 600; letter-spacing: 1.1px; fill: #656d76; }
+    .txt  { font-size: 11px; fill: #1f2328; }
+    .mut  { font-size: 10.5px; fill: #656d76; }
+    .gate { font-size: 12px; font-weight: 600; fill: #1f2328; }
+    .bg   { fill: #ffffff; }
+    .box  { fill: #ffffff; stroke: #d0d7de; }
+    .pill { fill: #f6f8fa; stroke: #d0d7de; }
+    .flow { stroke: #8c959f; stroke-width: 1.4; fill: none; }
+    .dash { stroke: #8c959f; stroke-width: 1.2; fill: none; stroke-dasharray: 4 4; }
+    .frz  { fill: none; stroke: #8c959f; stroke-width: 1.2; stroke-dasharray: 5 4; }
+    @media (prefers-color-scheme: dark) {
+      .lbl, .txt, .gate { fill: #e6edf3; }
+      .cap, .mut        { fill: #8b949e; }
+      .bg   { fill: #0d1117; }
+      .box  { fill: #161b22; stroke: #30363d; }
+      .pill { fill: #161b22; stroke: #30363d; }
+      .flow, .dash, .frz { stroke: #6e7681; }
+      #ah path { fill: #6e7681; }
+    }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8c959f"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="900" height="330"/>
+
+  <!-- frozen control plane -->
+  <rect class="frz" x="30" y="30" width="228" height="230" rx="10"/>
+  <text class="t cap" x="48" y="56">FROZEN CONTROL PLANE</text>
+  <text class="t txt" x="48" y="86">MISSION.md</text>
+  <text class="t txt" x="48" y="108">policy.json — the promotion bars</text>
+  <text class="t txt" x="48" y="130">sandbox.json — the spend cap</text>
+  <text class="t txt" x="48" y="152">the gate code itself</text>
+  <line class="dash" x1="48" y1="170" x2="240" y2="170"/>
+  <text class="t mut" x="48" y="192">Every file hashed into a manifest.</text>
+  <text class="t mut" x="48" y="208">The agent may propose a change</text>
+  <text class="t mut" x="48" y="224">in writing — and may not make one.</text>
+  <text class="t mut" x="48" y="246">An edit is possible; a quiet one is not.</text>
+
+  <!-- return path, routed above the cycle so nothing crosses -->
+  <path class="flow" d="M820 62 L820 42 L352 42 L352 58" marker-end="url(#ah)"/>
+  <text class="t mut" x="586" y="36" text-anchor="middle">one action per cycle</text>
+
+  <!-- the cycle -->
+  <g>
+    <rect class="pill" x="302" y="62" width="100" height="42" rx="8"/>
+    <text class="t lbl" x="352" y="88" text-anchor="middle">SENSE</text>
+    <rect class="pill" x="419" y="62" width="100" height="42" rx="8"/>
+    <text class="t lbl" x="469" y="88" text-anchor="middle">ORIENT</text>
+    <rect class="pill" x="536" y="62" width="100" height="42" rx="8"/>
+    <text class="t lbl" x="586" y="88" text-anchor="middle">THINK</text>
+    <rect class="pill" x="653" y="62" width="100" height="42" rx="8"/>
+    <text class="t lbl" x="703" y="88" text-anchor="middle">ACT</text>
+    <rect class="pill" x="770" y="62" width="100" height="42" rx="8"/>
+    <text class="t lbl" x="820" y="88" text-anchor="middle">REFLECT</text>
+  </g>
+  <path class="flow" d="M404 83 L415 83" marker-end="url(#ah)"/>
+  <path class="flow" d="M521 83 L532 83" marker-end="url(#ah)"/>
+  <path class="flow" d="M638 83 L649 83" marker-end="url(#ah)"/>
+  <path class="flow" d="M755 83 L766 83" marker-end="url(#ah)"/>
+
+  <!-- ACT drops into the gates -->
+  <path class="flow" d="M703 106 L703 146" marker-end="url(#ah)"/>
+
+  <!-- the gates -->
+  <rect class="box" x="302" y="150" width="568" height="110" rx="10"/>
+  <text class="t cap" x="322" y="172">FOUR GATES</text>
+  <g>
+    <text class="t gate" x="322" y="200">integrity</text>
+    <text class="t mut"  x="322" y="217">is the control</text>
+    <text class="t mut"  x="322" y="231">plane intact?</text>
+
+    <text class="t gate" x="462" y="200">sandbox</text>
+    <text class="t mut"  x="462" y="217">is this dollar</text>
+    <text class="t mut"  x="462" y="231">inside the cap?</text>
+
+    <text class="t gate" x="602" y="200">panel</text>
+    <text class="t mut"  x="602" y="217">does an</text>
+    <text class="t mut"  x="602" y="231">adversary object?</text>
+
+    <text class="t gate" x="742" y="200">ladder</text>
+    <text class="t mut"  x="742" y="217">does the evidence</text>
+    <text class="t mut"  x="742" y="231">support it?</text>
+  </g>
+
+  <!-- the frozen plane is what the integrity gate checks -->
+  <path class="dash" d="M262 200 L296 200" marker-end="url(#ah)"/>
+
+  <text class="t mut" x="586" y="288" text-anchor="middle">any one of the four says no  →  the action does not happen, and the refusal is logged</text>
+  <text class="t mut" x="586" y="310" text-anchor="middle">Across the run, no strategy ever cleared all four.</text>
+</svg>

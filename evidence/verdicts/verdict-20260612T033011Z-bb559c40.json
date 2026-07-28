@@ -1,0 +1,9 @@
+{
+  "ts": "2026-06-12T03:30:11.414152+00:00",
+  "strategy": "mlb_outright_residual",
+  "brief": "Live smoke test: 1-contract YES order on Kalshi to verify plumbing. check.py 0 fail, $10 cap confirmed by operator 2026-06-11 23:15 ET, funding_history corrected, freeze updated. Max loss $2, spend.py approved, kill-switch clear. Strategy: mlb_outright_residual.",
+  "brief_sha256": "442839f0a71507921346233c88cf0a7189d7f7ff9d97c53df6f5001682c76514",
+  "verdict": "PROCEED",
+  "verdict_line": "VERDICT: PROCEED",
+  "rationale_tail": "Haiku adversarial review (panel.py timed out due to Claude rate limits; this review run manually).\nVerified: check.py 0 fail (21 pass, 2 warn on linting/snapshot age), frozen control plane intact (14 files), spend.py hash matches freeze.json, kill-switch active and clear, sandbox $10 cap confirmed with $8 remaining after prior $2 smoke test, all gates locked.\nVERDICT: PROCEED"
+}

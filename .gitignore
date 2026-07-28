@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# mutable state written by a local run — the committed evidence pack is the record
+runtime/
+config/sandbox.json.tmp

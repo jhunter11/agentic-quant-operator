@@ -1,0 +1,13 @@
+{
+  "_doc": "Operator-blessed hashes of the frozen control plane. Verified by quantdesk.integrity.verify() before every consequential action. Regenerate ONLY via --rebless, after reviewing a written proposal.",
+  "files": {
+    "config/policy.json": "b968e49e264f3cd9a3e25e098763ee655535366b1401de90607971938b9a04e4",
+    "config/sandbox.json": "bcc9a9433d600740f311ac201851441f4eeec2b5146d3734df75c9bfee1e69ba",
+    "quantdesk/sandbox.py": "2346f37c41b328a4c07db9dc4a05d724907544d68dce78f748bf3adb7473bc7b",
+    "quantdesk/integrity.py": "ec3d77cb7e637d15466d2e4fa8c204d5a0bb4aed503f4c260aacf9a07faa8a3c",
+    "quantdesk/panel.py": "b9a67daa7f9d09bceced7e77184da74d9884d94fb6f0b5a709b09abdb039aed4",
+    "quantdesk/ladder.py": "ef2473c43d33521adf4c493003180be6fca55d5ba5365e436a5a3c17ff23a834",
+    "quantdesk/metrics.py": "6e2dead236e698c957c21616f369b4e3395d13ab0c0984d8146b67a450b5f0cd",
+    "docs/MISSION.md": "401df7e0e2e38f86c642b276a8ed9ebfd1e1705050d4f598b0da192df8c9dc1a"
+  }
+}

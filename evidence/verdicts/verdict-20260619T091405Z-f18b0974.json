@@ -1,0 +1,9 @@
+{
+  "ts": "2026-06-19T09:14:05.494289+00:00",
+  "strategy": null,
+  "brief": "PIVOT: Retire model-vs-line as primary Kalshi thesis (44 cycles, $0, all sleeves efficient/KILLED); pivot to pre-registered phantom-guarded live-microstructure paper-validation on now-fixed sub-second WS capture (37s->21ms, no capital needed). Keep settlers running; no new model work; no live orders; $0 spend.",
+  "brief_sha256": "f18b0974c3aa0b29cda61d0ecbcc3dd5e5fe0e4e23eba689bb8e7cddc9ec21db",
+  "verdict": "BLOCKED",
+  "verdict_line": "VERDICT: BLOCKED \u2014 review unparseable",
+  "rationale_tail": "There's an issue with the selected model (claude-fable-5). It may not exist or you may not have access to it. Run --model to pick a different model.\n"
+}
