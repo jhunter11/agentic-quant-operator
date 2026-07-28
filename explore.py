@@ -190,6 +190,7 @@ def item_tests() -> None:
         "ledgers. If a change makes the desk look better, these fail."
     )
     print()
+    sys.stdout.flush()   # keep our output ahead of the child's when piped
     subprocess.run(
         [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-t", "."],
         cwd=ROOT,
