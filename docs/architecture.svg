@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330" role="img" aria-label="The agent runs a five-stage cycle; every consequential action passes four gates, which are themselves hash-verified against a frozen control plane.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330" role="img" aria-label="The agent cycle calls integrity, spending, review, and promotion checks. These checks do not prevent bypass by a process with write access.">
   <style>
     .t    { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; }
     .lbl  { font-size: 13px; font-weight: 600; letter-spacing: .3px; fill: #1f2328; }
@@ -34,14 +34,14 @@
   <rect class="frz" x="30" y="30" width="228" height="230" rx="10"/>
   <text class="t cap" x="48" y="56">FROZEN CONTROL PLANE</text>
   <text class="t txt" x="48" y="86">MISSION.md</text>
-  <text class="t txt" x="48" y="108">policy.json — the promotion bars</text>
-  <text class="t txt" x="48" y="130">sandbox.json — the spend cap</text>
+  <text class="t txt" x="48" y="108">policy.json: promotion thresholds</text>
+  <text class="t txt" x="48" y="130">sandbox.json: spending cap</text>
   <text class="t txt" x="48" y="152">the gate code itself</text>
   <line class="dash" x1="48" y1="170" x2="240" y2="170"/>
-  <text class="t mut" x="48" y="192">Every file hashed into a manifest.</text>
+  <text class="t mut" x="48" y="192">A manifest hashes selected files.</text>
   <text class="t mut" x="48" y="208">The agent may propose a change</text>
-  <text class="t mut" x="48" y="224">in writing — and may not make one.</text>
-  <text class="t mut" x="48" y="246">An edit is possible; a quiet one is not.</text>
+  <text class="t mut" x="48" y="224">but must preserve these files.</text>
+  <text class="t mut" x="48" y="246">Write access can bypass this rule.</text>
 
   <!-- return path, routed above the cycle so nothing crosses -->
   <path class="flow" d="M820 62 L820 42 L352 42 L352 58" marker-end="url(#ah)"/>
@@ -92,6 +92,6 @@
   <!-- the frozen plane is what the integrity gate checks -->
   <path class="dash" d="M262 200 L296 200" marker-end="url(#ah)"/>
 
-  <text class="t mut" x="586" y="288" text-anchor="middle">any one of the four says no  →  the action does not happen, and the refusal is logged</text>
-  <text class="t mut" x="586" y="310" text-anchor="middle">Across the run, no strategy ever cleared all four.</text>
+  <text class="t mut" x="586" y="288" text-anchor="middle">Invoked checks can reject an action. Hashes alone do not prevent tampering.</text>
+  <text class="t mut" x="586" y="310" text-anchor="middle">The archived run records no strategy at READY or LIVE.</text>
 </svg>

@@ -78,23 +78,23 @@
 
   <rect class="dead" x="45" y="158" width="250" height="62" rx="8"/>
   <text class="t stg" x="70" y="184">RETIRED</text>
-  <text class="t cnt" x="70" y="203">14 killed on their own evidence</text>
+  <text class="t cnt" x="70" y="203">14 in the archived ledger</text>
 
-  <text class="t mut" x="45" y="248">Killing a candidate is cheap and</text>
-  <text class="t mut" x="45" y="264">reversible. Capital is neither — so</text>
-  <text class="t mut" x="45" y="280">the loop is tuned to kill early and</text>
-  <text class="t mut" x="45" y="296">to advance only one rung at a time.</text>
+  <text class="t mut" x="45" y="248">Retirement ends a candidate run.</text>
+  <text class="t mut" x="45" y="264">The archive retains its evidence.</text>
+  <text class="t mut" x="45" y="280">Promotion checks apply at each</text>
+  <text class="t mut" x="45" y="296">transition that calls the ladder.</text>
 
   <!-- what the gates demand -->
   <rect class="pan" x="330" y="158" width="525" height="162" rx="8"/>
   <text class="t cap" x="352" y="182">PAPER → READY</text>
-  <text class="t txt" x="352" y="204">20+ settled decisions over 15+ <tspan font-style="italic">independent</tspan> days</text>
-  <text class="t txt" x="352" y="222">closing-line value positive and significant, clustered by day</text>
-  <text class="t txt" x="352" y="240">realised fee-net P&amp;L &gt; 0 · calibration error inside the ceiling</text>
-  <text class="t txt" x="352" y="258">metrics <tspan font-weight="700">derived from the ledger</tspan>, never hand-entered</text>
-  <text class="t txt" x="352" y="276">a PROCEED artifact from the review panel, under 24h old</text>
+  <text class="t txt" x="352" y="204">20+ settled decisions over 15+ recorded days</text>
+  <text class="t txt" x="352" y="222">mean CLV ≥ 0 and a day-clustered significance flag</text>
+  <text class="t txt" x="352" y="240">fee-net P&amp;L &gt; 0 · calibration ceiling if a value exists</text>
+  <text class="t txt" x="352" y="258">ledger provenance field: a claim, not authentication</text>
+  <text class="t txt" x="352" y="276">recent strategy PROCEED · no brief-hash equality check</text>
 
   <line class="gate" x1="352" y1="288" x2="833" y2="288"/>
   <text class="t cap" x="352" y="308">READY → LIVE</text>
-  <text class="t txt" x="470" y="308">…all of the above, plus the spend gate approving the worst case</text>
+  <text class="t txt" x="470" y="308">promotion checks and a spending-cap check</text>
 </svg>
